@@ -11,7 +11,7 @@ const pool=mysql.createPool({
     queueLimit: 0
 })
 async function query(sql,params){
-    const sqlquery=await pool.query(sql,params)
+    const [sqlquery]=await pool.query(sql,params)
     return sqlquery
 }
 async function transaction(callback){
