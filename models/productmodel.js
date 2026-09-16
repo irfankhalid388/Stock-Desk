@@ -1,27 +1,44 @@
-const { name } = require("ejs");
 const db=require("../config/db");
-const { show } = require("../controllers/productcontroller");
-async function findall(){
-      const sql = `
-        SELECT
-            id,
-            sku,
-            name,
-            category_id,
-            cost_price,
-            sale_price,
-            quantity,
-            reorder_level,
-            is_active,
-            created_at,
-            updated_at
-        FROM products
-        WHERE is_active = 1
-        ORDER BY id DESC
-    `;
-    const rows= await db.query(sql)
-    return rows
+async function findall({
+    page = 1,
+    limit = 10,
+    search = "",
+    category_id = null
+}) {
+    let conditions = "WHERE is_active = 1";
+    let params = [];
 
+    if (search && search.trim()) {
+        conditions += ` AND (name LIKE ? OR sku LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`);
+    }
+    if (category_id !== null && category_id !== undefined) {
+        conditions += ` AND category_id = ?`;
+        params.push(category_id);
+    }
+    const countSql = `SELECT COUNT(*) AS total FROM products ${conditions}`;
+    const countResult = await db.query(countSql, params);
+    const total = countResult[0].total;
+
+    const offset = (page - 1) * limit;
+    let sql = `
+        SELECT
+            id, sku, name, category_id, cost_price, sale_price,
+            quantity, reorder_level, is_active, created_at, updated_at
+        FROM products
+        ${conditions}
+        ORDER BY id DESC
+        LIMIT ? OFFSET ?
+    `;
+    const dataParams = [...params, Number(limit), Number(offset)];
+    const rows = await db.query(sql, dataParams);
+
+    return {
+        rows,
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+    };
 }
 async function showall(id){
     const sql=`
@@ -55,10 +72,10 @@ async function createdata(data) {
             data.quantity,
             data.reorder_level
         ])
-        return show(rows.insertId)
+        return showall(rows.insertId)
 }
 async function updatedata(id,data){
-    const mysql=`UPDATE products
+    const sql=`UPDATE products
         SET
             sku = ?,
             name = ?,
@@ -81,7 +98,7 @@ async function updatedata(id,data){
         if(rows.affectedRows===0){
          return null
         }
-        return show(id)
+        return showall(id)
 }
 async function softdelte(id){
     const sql=` UPDATE products

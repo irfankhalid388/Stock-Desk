@@ -4,8 +4,10 @@ const invoiceRoutes = require("./invoiceroutes")
 const reportRoutes = require("./reportroutes")
 const productRoutes = require("./productroutes")
 const authroutes=require("./authroute")
+const customerroutes=require("./customerroute")
 router.use("/products", productRoutes)
 router.use("/auth",authroutes)
 router.use("/invoices", invoiceRoutes);
 router.use("/reports", reportRoutes);
+router.use("/customers",customerroutes)
 module.exports = router

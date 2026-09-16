@@ -1,15 +1,17 @@
 const db=require("../config/db")
-const stockmovementModel=require("../models/stockmovementmodel")
 const productModel=require("../models/productmodel")
-async function list(req,res,next) {
-    try{
-        const products=await productModel.findall()
-        res.status(200).json({
-            products
-        })
-    }
-    catch(err){
-        next(err)
+const stockmovementModel = require("../models/stockmovementmodel")
+async function list(req, res, next) {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || "";
+        const category_id = req.query.category_id ? parseInt(req.query.category_id) : null;
+
+        const result = await productModel.findall({ page, limit, search, category_id });
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
     }
 }
 function stripofcostprice( product,role){
@@ -45,7 +47,7 @@ async function create(req,res,next){
     }
     catch(err){
         if(err.code=== "ER_DUP_ENTRY"){
-        res.status(409).json({
+         return res.status(409).json({
             error:"SKU_ALREADY_EXISTS" 
         })
       }
@@ -65,7 +67,7 @@ async function update(req,res,next){
     }
     catch(err){
      if(err.code=== "ER_DUP_ENTRY"){
-        res.status(409).json({
+         return res.status(409).json({
             error:"SKU_ALREADY_EXISTS" 
         })
       }
@@ -109,9 +111,10 @@ async function stockadjust(req,res,next){
                 user_id:req.user.id,
                 note:note   
         }) 
-        return productModel.showall(id)  
+      
     })
-    res.status(200).json({product:result})
+const product = await productModel.showall(id)
+res.status(200).json({ product }) 
     }
     catch(err){
 if(err.status === 422){
@@ -120,5 +123,43 @@ if(err.status === 422){
     next(err)
     }
 }
+async function renderlist(req,res,next){
+    try{
+      const result= await productModel.findall({page:1,limit:10,search:""})
+      res.render("products/list",{
+        products:result
+      })
+    }
+    catch(err){
+       next(err)
+    }
+}
+async function rendernewform(req,res,next){
+try{ 
+    res.render("products/form",{
+        product:null
+    })
 
-module.exports={list,show,create,update,remove,stockadjust}
+}
+catch(err){
+next(err)
+}
+}
+async function renderdeditform(req,res,next){
+    try{
+        const product = await productModel.showall(req.params.id)
+
+        if (!product) {
+            return res.status(404).send("Product not found")
+        }
+
+        res.render("products/form", {
+            product: product,
+        })
+    }
+    catch(err){
+        next(err)
+    }
+}
+
+module.exports={list,show,create,update,remove,stockadjust,renderlist,rendernewform,renderdeditform}

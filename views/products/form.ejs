@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Product Form</title>
+</head>
+<body>
+
+  <h1><%= product ? "Edit Product" : "Add Product" %></h1>
+
+  <form id="productForm">
+    <input type="hidden" id="productId" value="<%= product ? product.id : '' %>">
+
+    <label for="sku">SKU</label>
+    <input type="text" id="sku" value="<%= product ? product.sku : '' %>">
+    <span id="err-sku"></span>
+
+    <label for="name">Name</label>
+    <input type="text" id="name" value="<%= product ? product.name : '' %>">
+    <span id="err-name"></span>
+
+    <label for="category_id">Category ID</label>
+    <input type="number" id="category_id" value="<%= product ? product.category_id : '' %>">
+    <span id="err-category_id"></span>
+
+    <label for="cost_price">Cost Price</label>
+    <input type="number" step="0.01" id="cost_price" value="<%= product ? product.cost_price : '' %>">
+    <span id="err-cost_price"></span>
+
+    <label for="sale_price">Sale Price</label>
+    <input type="number" step="0.01" id="sale_price" value="<%= product ? product.sale_price : '' %>">
+    <span id="err-sale_price"></span>
+
+    <label for="quantity">Quantity</label>
+    <input type="number" id="quantity" value="<%= product ? product.quantity : '' %>">
+    <span id="err-quantity"></span>
+
+    <label for="reorder_level">Reorder Level</label>
+    <input type="number" id="reorder_level" value="<%= product ? product.reorder_level : '' %>">
+    <span id="err-reorder_level"></span>
+
+    <button type="submit"><%= product ? "Save Changes" : "Create Product" %></button>
+  </form>
+
+</body>
+</html>

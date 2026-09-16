@@ -4,9 +4,21 @@ function notFound(req, res) {
         message: "Route not found"
     });
 }
-
 function errorHandler(err, req, res, next) {
-    console.error(err);
+    console.log(err)
+    if (err.code === "ER_DUP_ENTRY") {
+        return res.status(409).json({
+            error: "DUPLICATE_ENTRY",
+            message: "This record already exists"
+        });
+    }
+
+    if (err.status) {
+        return res.status(err.status).json({
+            error: err.error || "ERROR",
+            message: err.message
+        });
+    }
 
     res.status(500).json({
         error: "INTERNAL_SERVER_ERROR",

@@ -28,7 +28,7 @@ return rows [0] || null
 async function revokeRefreshToken(id){
     const sql=`UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = ?`
     const rows= await db.query(sql,[id])
-    return rows[0] || null 
+    return result.affectedRows > 0
     
 }
 module.exports={

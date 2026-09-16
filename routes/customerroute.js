@@ -1,0 +1,11 @@
+const express=require("express")
+const {authrequired}=require("../middleware/authmiddleware")
+ const {rolerequired}=require("../middleware/rolerequired")
+const customercontroller=require("../controllers/customercontroller")
+const {customerRules,validate}=require("../middleware/validate")
+const router=express.Router()
+router.get("/:id",authrequired,rolerequired("admin"),customercontroller.customerinvoicedata)
+router.get("/",authrequired,rolerequired("admin","staff"),customercontroller.list)
+router.post("/",authrequired,rolerequired("admin","staff"),customerRules,validate,customercontroller.create)
+router.put("/:id",authrequired,rolerequired("admin","staff"),customerRules,validate,customercontroller.update)
+module.exports=router
