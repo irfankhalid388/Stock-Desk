@@ -1,9 +1,18 @@
 const model = require("../models/usermodel")
 const { hash,compare } = require("../utils/password")
 const { signaccess, signrefresh,hashtoken, verifyrefresh } = require("../utils/token")
+// ///////////////////REGISTER///////////////////////////////////////////
 async function register(req, res, next) {
     try {
-        const { name, email, password, role } = req.body
+       const count=await model.countuser()
+       if(count>0){
+        // some is already exits
+     return res.status(403).json({
+            error:'REGISTRATION_CLOSED',
+            message:'an admin already exists. Ask your owner to add your acount'
+        })
+       }
+        const { name, email, password} = req.body
 
         const password_hash = await hash(password)
 
@@ -11,7 +20,7 @@ async function register(req, res, next) {
             name,
             email,
             password_hash,
-            role
+            role:"admin"
     })
 
         res.status(201).json({
@@ -23,6 +32,72 @@ async function register(req, res, next) {
         next(err)
     }
 }
+// /////////////////////////////////////ADDUSER///////////////////////////////////////////////////////////
+async function adduser(req,res,next){
+  try{ 
+const {name,email,password}=req.body
+const password_hash=await hash(password)
+const result=await model.create({
+            name,
+            email,
+            password_hash,
+            role:"staff"
+}) 
+res.status(200).json(result)
+}
+catch(err){
+next(err)
+}
+}
+// //////////////////////////////DEACTIVATE//////////////////////////////////
+async function deactivate(req,res,next){
+    try{
+const targetid=Number(req.params.id)
+if(targetid===req.user.id){
+return  res.status(400).json({
+        error:"CANNOT_DEACTIVATE_SELF",
+        message:"you cannot deactivate yourself"
+    })
+}
+const target=await model.findById(targetid)
+if(!target){
+return  res.status(404).json({
+        error:"USER_NOT_FOUND"
+    })
+}
+await model.deactivate(target.id)
+await model.revokeAllForUser(target.id)
+res.status(200).json({message:`${target.name} has been de_activated`})
+    }
+    catch(err){
+     next(err)
+    }
+}
+// //////////////////////////PASSWORDCHANGE/////////////////////////////////
+async function changepassword(req,res,next){
+    try{
+
+    
+const {currentPassword,newPassword}=req.body
+const user=await model.findByIdWithPassword(req.user.id)
+if(!user){
+ return res.status(404).json({error:"USER_NOT_FOUND"})
+}
+const match=await compare(currentPassword,user.password_hash)
+if(!match){
+     return res.status(401).json({ error: 'Current password is incorrect' });
+}
+const newHash = await hash(newPassword,);
+    await model.updatepassword(user.id, newHash);
+    await model.revokeAllForUser(user.id);
+
+    res.json({ message: 'Password updated. Please log in again on your other devices.' });
+}
+catch(err){
+next(err)
+}
+}
+/////////////////////////// LOGIN///////////////////////////////////////////
 async function login (req,res,next){
     try{
         const {email,password}=req.body
@@ -30,8 +105,11 @@ async function login (req,res,next){
         if(!user){
              return res.status(401).json({ error: "invalid credentials" })
         }
+         if (!user.is_active) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
         const isMatch=await compare(password,user.password_hash)
-        if(!isMatch){
+              if(!isMatch){
           return res.status(401).json({ error: "invalid credentials" })  
         }
         // tokens /////////////////////////////////////////////////////
@@ -55,6 +133,7 @@ async function login (req,res,next){
         next(err)
     }
 }
+// //////////////////////REFRESH///////////////////////////////////////////////
 async function refresh(req,res,next) {
     try{
     const oldrefresh=req.cookies.refreshtoken
@@ -101,7 +180,8 @@ async function refresh(req,res,next) {
     catch(err){
       next(err)
     }
-} 
+}
+// ////////////////////////////////////LOGOUT///////////////////////////////// 
 async function logout(req, res, next) {
     try {
         const oldrefresh = req.cookies.refreshtoken
@@ -121,10 +201,30 @@ async function logout(req, res, next) {
         next(err)
     }
 }
+// /////////////////////////////////ME///////////////////////////////////
+async function me(req, res, next) {
+  try {
+    const user = await model.findById(req.user.id);
+    if (!user){ return res.status(404).json({ error: 'User not found' })};
 
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+// ///////////////////////////EXPORTS/////////////////////////////////////
 module.exports={
     register,
     login,
     refresh,
-    logout
+    logout,
+    adduser,
+    me,
+    deactivate,
+    changepassword
 }

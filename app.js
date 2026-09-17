@@ -23,10 +23,6 @@ app.use(cookiepraser())
 app.use(express.static(path.join(__dirname, "public")))
 // to serve static files 
 app.use("/api", routes)
-// to render ejs
-app.get("/products", require("./controllers/productcontroller").renderlist)   
-app.get("/products/new",require("./controllers/productcontroller").rendernewform)
-app.get("/products/:id/edit",require("./controllers/productcontroller").renderdeditform)
 // set ejs as server render view
 app.set("view engine", "ejs")
 // if nothing matced this will catch error

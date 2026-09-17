@@ -8,10 +8,10 @@ const page=parseInt(req.query.page) || 1
 const limit=parseInt(req.query.limit) || 20
 const result =await customerModel.findall(search,page,limit)
 res.status(200).json(result)
-    }
-    catch(err){
+}
+catch(err){
 next(err)
-    }
+}
 }
 // SHOW/////////////////////////////////////////////////////////////
 async function show(req,res,next){
@@ -48,7 +48,7 @@ async function update(req,res,next) {
     try{
        const customer = await customerModel.updatedata(req.body, req.params.id);
        if(!customer){
-        res.status(404).json({error:"CUSTOMER_NOT_FOUND"})
+         return res.status(404).json({error:"CUSTOMER_NOT_FOUND"})
        }
        res.status(200).json(customer)
     }
@@ -61,7 +61,7 @@ async function customerinvoicedata(req,res,next){
     try{
     const results=await customerModel.findwithinvoicetotals(req.params.id)
     if(!results){
-        res.status(404).json({
+         return res.status(404).json({
             error:"RESULTS_NOT_FOUND"
         })
     }

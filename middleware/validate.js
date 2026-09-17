@@ -99,6 +99,61 @@ const productRules = [
     .isInt({ min: 0 })
     .withMessage("reorder_level must be a whole number, zero or more"),
 ];
+const registerRules = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('Name is required')
+    .isLength({ max: 100 }).withMessage('Name is too long'),
+
+  body('email')
+    .trim()
+    .isEmail().withMessage('Must be a valid email')
+    .normalizeEmail(),
+
+  body('password')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/[A-Z]/).withMessage('Password must contain an uppercase letter')
+    .matches(/[0-9]/).withMessage('Password must contain a number')
+];
+const loginRules = [
+  body('email')
+    .trim()
+    .isEmail().withMessage('Must be a valid email')
+    .normalizeEmail(),
+
+  body('password')
+    .notEmpty().withMessage('Password is required')
+];
+const changePasswordRules = [
+  body('currentPassword')
+    .notEmpty().withMessage('Current password is required'),
+
+  body('newPassword')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/[A-Z]/).withMessage('Password must contain an uppercase letter')
+    .matches(/[0-9]/).withMessage('Password must contain a number')
+];
+const invoiceRules = [
+  body('customerId')
+    .isInt({ min: 1 }).withMessage('customerId must be a valid id'),
+
+  body('items')
+    .isArray({ min: 1 }).withMessage('items must be a non-empty array'),
+
+  body('items.*.productId')
+    .isInt({ min: 1 }).withMessage('each item needs a valid productId'),
+
+  body('items.*.quantity')
+    .isInt({ min: 1 }).withMessage('each item quantity must be at least 1'),
+
+  body('discount')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('discount must be a non-negative number'),
+
+  body('tax')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('tax must be a non-negative number')
+];
  function validate(req, res, next) {
   const result = validationResult(req);
 
@@ -115,4 +170,4 @@ const productRules = [
 
   return res.status(422).json({ errors });
 }
-module.exports={productRules,validate,adjustRules,customerRules}
+module.exports={productRules,validate,adjustRules,customerRules,registerRules,loginRules,changePasswordRules,invoiceRules}

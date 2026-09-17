@@ -9,7 +9,9 @@ async function list(req, res, next) {
         const category_id = req.query.category_id ? parseInt(req.query.category_id) : null;
 
         const result = await productModel.findall({ page, limit, search, category_id });
-        res.status(200).json(result);
+        const safeItems = result.items.map(item => stripofcostprice(item, req.user.role));
+
+        res.status(200).json({...result,items:safeItems});
     } catch (err) {
         next(err);
     }
@@ -123,43 +125,5 @@ if(err.status === 422){
     next(err)
     }
 }
-async function renderlist(req,res,next){
-    try{
-      const result= await productModel.findall({page:1,limit:10,search:""})
-      res.render("products/list",{
-        products:result
-      })
-    }
-    catch(err){
-       next(err)
-    }
-}
-async function rendernewform(req,res,next){
-try{ 
-    res.render("products/form",{
-        product:null
-    })
 
-}
-catch(err){
-next(err)
-}
-}
-async function renderdeditform(req,res,next){
-    try{
-        const product = await productModel.showall(req.params.id)
-
-        if (!product) {
-            return res.status(404).send("Product not found")
-        }
-
-        res.render("products/form", {
-            product: product,
-        })
-    }
-    catch(err){
-        next(err)
-    }
-}
-
-module.exports={list,show,create,update,remove,stockadjust,renderlist,rendernewform,renderdeditform}
+module.exports={list,show,create,update,remove,stockadjust}

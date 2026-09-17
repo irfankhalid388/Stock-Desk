@@ -122,4 +122,13 @@ async function incrementstock(conn,id,qty){
     const [result]=await conn.query(sql,[qty,id])
     return result.affectedRows>0
 }
-module.exports={findall,showall,createdata,updatedata,softdelte,decrementstock,incrementstock};
+async function findlowsstock(){
+const sql=`SELECT id, sku, name, quantity, reorder_level
+     FROM products
+     WHERE quantity <= reorder_level
+       AND is_active = 1
+     ORDER BY quantity ASC`
+     const result=await db.query(sql)
+     return result
+}
+module.exports={findall,showall,createdata,updatedata,softdelte,decrementstock,incrementstock,findlowsstock};

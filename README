@@ -1,0 +1,40 @@
+Method	     Path	                       Token required?	
+POST	    /api/auth/register	           No	— (public, self-locks after first admin exists)
+POST	    /api/auth/login	               No (rate-limited: 5/min/IP)	— (public)
+POST	    /api/auth/refresh	           No — authenticates via refresh cookie instead	—
+POST	    /api/auth/logout	           No — refresh cookie optional	—
+POST	    /api/auth/me	               Yes	any authenticated user
+POST	    /api/users	                   Yes	admin only
+PATCH	    /api/users/:id/deactivate	   Yes	admin only
+GET	        /api/customers	               Yes	admin, staff
+GET	        /api/customers/:id	           Yes	admin, staff
+GET	        /api/customers/:id/summary	   Yes	admin only
+POST	    /api/customers	               Yes	admin, staff
+PUT	        /api/customers/:id	           Yes	admin, staff
+GET	        /api/products	               Yes	any authenticated user (no role check)
+GET	        /api/products/:id	           Yes	any authenticated user (no role check)
+POST	    /api/products	               Yes	admin, staff
+PUT	        /api/products/:id	           Yes	admin, staff
+DELETE	    /api/products/:id	           Yes	admin only
+POST	    /api/products/:id/adjust	   Yes	admin only
+POST	    /api/invoices	               Yes	admin, staff
+PUT	        /api/invoices/:id/status	   Yes	admin only
+GET	        /api/reports/summary	       Yes	admin only
+GET	        /api/reports/low-stock	       Yes	any authenticated user (no role check)
+GET	        /api/reports/sales_per_staff   Yes	admin only
+
+
+
+
+
+
+
+
+/////////////////////////////////////REMAINING//////////////////////////////////////
+CSV FILE ----------------
+EJS FILES
+api.js
+VERIFICATION ON PASSWORD CHANGE---------------------
+TEST EVERY SCREEN AT 360
+Escape all output in EJS to prevent stored XSS
+deployement-----------------------

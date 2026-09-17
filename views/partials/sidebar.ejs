@@ -1,0 +1,15 @@
+<nav class="sidebar">
+
+    <ul>
+        <li><a href="/dashboard">dashboard</a></li>
+        <li><a href="/products">products</a></li>
+        <li><a href="/customers">customers</a></li>
+        <li><a href="/invoices">invoices</a></li>
+        <% if(role==="admin"){ %>
+            <li><a href="/reports">reports</a></li>
+        <%}%>
+   </ul>
+   <form action="/api/auth/logout">
+    <button type="sumit">logout</button>
+   </form>
+</nav>
