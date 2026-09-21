@@ -5,11 +5,9 @@
         <li><a href="/products">products</a></li>
         <li><a href="/customers">customers</a></li>
         <li><a href="/invoices">invoices</a></li>
-        <% if(role==="admin"){ %>
-            <li><a href="/reports">reports</a></li>
-        <%}%>
+         <li id="reportsLink" style="display: none;"><a href="/reports">Reports</a></li>
    </ul>
    <form action="/api/auth/logout">
-    <button type="sumit">logout</button>
+    <button id="logout" type="submit">logout</button>
    </form>
 </nav>

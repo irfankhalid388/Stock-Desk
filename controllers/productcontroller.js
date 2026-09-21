@@ -9,9 +9,9 @@ async function list(req, res, next) {
         const category_id = req.query.category_id ? parseInt(req.query.category_id) : null;
 
         const result = await productModel.findall({ page, limit, search, category_id });
-        const safeItems = result.items.map(item => stripofcostprice(item, req.user.role));
+        const safeItems = result.rows.map(item => stripofcostprice(item, req.user.role));
 
-        res.status(200).json({...result,items:safeItems});
+        res.status(200).json({ ...result, rows: safeItems });
     } catch (err) {
         next(err);
     }

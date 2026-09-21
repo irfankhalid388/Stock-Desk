@@ -8,11 +8,13 @@
 <body>
     <%- include('../partials/flash')%>
     <div class="appshell" >
-<%- include('../partials/sidebar')%>
+<%- include('../partials/sidebar') %>
+ <script src="/js/api.js"></script>
 <main>
     <%- include(`../${view}`)%>
 </main>
     </div> 
-    <%-include ('../partials/footer')
+    <%-include ('../partials/footer')%>
+   
 </body>
 </html>

@@ -8,9 +8,11 @@ async function signaccess(payload){
     return accesstoken
 }
 async function signrefresh(payload) {
-    const refreshtoken=await jwt.sign(payload,process.env. JWT_REFRESH_SECRET,{
-        expiresIn:process.env.REFRESH_TTL
-    })
+    const refreshtoken = await jwt.sign(
+        { ...payload, jti: crypto.randomUUID() },
+        process.env.JWT_REFRESH_SECRET,
+        { expiresIn: process.env.REFRESH_TTL }
+    )
     return refreshtoken
 }
 async function verifyaccess(token) {

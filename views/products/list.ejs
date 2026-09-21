@@ -1,37 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>list ejs</title>
-</head>
-<body>
-    <h1>products</h1>
+<h1>Products</h1>
 
-    <label for="input">input</label>
-    <input type="text" id="input" placeholder="search products......">
+<a href="/products/new" id="addProductLink" style="display: none;">+ Add Product</a>
 
-    <a href="/products/new">+ Add Product</a>
+<label for="searchInput">Search</label>
+<input type="text" id="searchInput" placeholder="Search products...">
 
-    <table>
-        <thead>
-            <tr>
-                <th>SKU</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="productTableBody">
-        </tbody>
-    </table>
+<table>
+  <thead>
+    <tr>
+      <th>SKU</th>
+      <th>Name</th>
+      <th>Price</th>
+      <th id="costPriceHeader" style="display: none;">Cost Price</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="productTableBody"></tbody>
+</table>
 
-    <div>
-        <button id="prevpage" disabled>previous</button>
-        <span id="pageinfo">page 1</span>
-        <button id="nextpage">next</button>
-    </div>
+<div>
+  <button id="prevPage" disabled>Previous</button>
+  <span id="pageInfo">Page 1</span>
+  <button id="nextPage">Next</button>
+</div>
 
-    <script src="/js/api.js"></script>
-</body>
-</html>
+<script src="/js/product.js"></script>

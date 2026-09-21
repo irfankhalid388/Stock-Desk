@@ -8,5 +8,5 @@ router.post("/register",registerRules,validate,authcontroller.register)
 router.post("/login",loginlimiter,loginRules,validate, authcontroller.login)
 router.post('/refresh', authcontroller.refresh);
 router.post('/logout', authcontroller.logout);
-router.post("/me",authrequired,authcontroller.me)
+router.get("/me",authrequired,authcontroller.me)
 module.exports=router
