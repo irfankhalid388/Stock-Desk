@@ -1,0 +1,24 @@
+<h1>Customer Summary</h1>
+
+<div class="toolbar">
+    <label for="summarySearch">search</label>
+  <input type="search" id="summarySearch" placeholder="Search by name, id or email...">
+</div>
+
+<div id="summaryMessage" role="alert"></div>
+
+<div id="summaryResults"></div>
+
+<div id="summaryDetail" style="display:none; margin-top: 20px;">
+  <h2>Summary</h2>
+  <table>
+    <tr><th>Name</th><td id="sum-name"></td></tr>
+    <tr><th>Email</th><td id="sum-email"></td></tr>
+    <tr><th>Phone</th><td id="sum-phone"></td></tr>
+    <tr><th>Address</th><td id="sum-address"></td></tr>
+    <tr><th>Total Invoices</th><td id="sum-count"></td></tr>
+    <tr><th>Total Spent</th><td id="sum-total"></td></tr>
+  </table>
+</div>
+
+<script src="/js/customersummary.js"></script>

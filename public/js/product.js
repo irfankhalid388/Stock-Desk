@@ -1,11 +1,9 @@
 let currentPage = 1;
 let currentUserRole = null;
 let debounceTimer;
-
 const searchInput = document.getElementById("searchInput");
 const prevBtn = document.getElementById("prevPage");
 const nextBtn = document.getElementById("nextPage");
-
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str;

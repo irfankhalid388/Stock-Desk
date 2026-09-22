@@ -6,8 +6,13 @@ async function list(req,res,next) {
 const search=req.query.search ||""
 const page=parseInt(req.query.page) || 1
 const limit=parseInt(req.query.limit) || 20
-const result =await customerModel.findall(search,page,limit)
-res.status(200).json(result)
+const result=await customerModel.findall({search,page,limit})
+res.status(200).json({
+    rows:result.rows,
+    total:result.total,
+    page,
+    pages:Math.ceil(result.total/limit) || 1
+})
 }
 catch(err){
 next(err)

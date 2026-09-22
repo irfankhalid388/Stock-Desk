@@ -27,7 +27,7 @@ async function findall({
             quantity, reorder_level, is_active, created_at, updated_at
         FROM products
         ${conditions}
-        ORDER BY id DESC
+        ORDER BY id
         LIMIT ? OFFSET ?
     `;
     const dataParams = [...params, Number(limit), Number(offset)];

@@ -8,5 +8,10 @@ router.get('/products', pageController.productsList);
 router.get('/products/new',  pageController.productForm);
 router.get('/products/:id/edit',  pageController.productForm);
 router.get('/login', (req, res) => res.render('auth/login'));
+// customers////////////////////////////////////////////////
+router.get("/customers", pageController.customerlist);
+router.get("/customers/new", pageController.customerForm);
+router.get("/customers/:id/edit", pageController.customerForm);
+router.get("/customers/summary", pageController.customerSummary);
 
 module.exports = router;

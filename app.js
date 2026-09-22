@@ -14,6 +14,8 @@ const{notFound,
     errorHandler
 }=require("./middleware/errorhandler")
 const app=express()
+// etag/////////////////////////
+app.set("etag", false);
 // for security secuirty headers first
 app.use(helmet())
 // parse json bodies

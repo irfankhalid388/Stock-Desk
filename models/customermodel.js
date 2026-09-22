@@ -5,17 +5,18 @@ async function findall({
     limit=20
 }) {
    const offset=(page-1)*limit ;
-   const like=`${search}`
+   const like=`%${search}%`
+   const idMatch = /^\d+$/.test(search) ? Number(search) : 0;
    const sql=`SELECT id, name, phone, email, address, created_at
      FROM customers
-     WHERE name LIKE ? OR phone LIKE ? OR email LIKE ?
-     ORDER BY created_at DESC
+     WHERE id=? OR name LIKE ? OR phone LIKE ? OR email LIKE ?
+     ORDER BY id
      LIMIT ? OFFSET ?`
-     const rows=await db.query(sql,[like,like,like,Number(limit),Number(offset)])
+     const rows=await db.query(sql,[idMatch,like,like,like,Number(limit),Number(offset)])
     //  TOTAL/////////////////////////////////////////////////////// 
      const totalsql=`SELECT COUNT(*) AS total FROM customers
-     WHERE name LIKE ? OR phone LIKE ? OR email LIKE ?`
-     const totalrows=await db.query(totalsql,[like,like,like])
+     WHERE id=? OR name LIKE ? OR phone LIKE ? OR email LIKE ?`
+     const totalrows=await db.query(totalsql,[idMatch,like,like,like])
     //  return//////////////////////////
     return{
         rows,

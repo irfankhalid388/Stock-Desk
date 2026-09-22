@@ -42,5 +42,35 @@ async function productForm(req, res, next) {
     next(err);
   }
 }
+async function customerlist(req,res,next) {
+  try{
+   res.render('layouts/main',{
+    title:"customers",
+    view:'customers/list'
+   })
+  }
+  catch(err){
+   next(err)
+  }
+}
+   function customerForm(req, res) {
+    try{
+     res.render("layouts/main", {
+       title: req.params.id ? "Edit Customer" : "Add Customer",
+       view: "customers/form",
+       customer: req.customer || null,   // however you're loading it — see below
+     });
+   }
+   catch(err){
+    next(err)
+   }
+  }
+  function customerSummary(req, res) {
+  res.render("layouts/main", {
+    title: "Customer Summary",
+    view: "customers/customersummary",
+  });
+}
 
-module.exports = { test, productsList, productForm };
+
+module.exports = { test, productsList, productForm,customerlist,customerForm,customerSummary };
