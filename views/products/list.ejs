@@ -10,8 +10,11 @@
     <tr>
       <th>SKU</th>
       <th>Name</th>
-      <th>Price</th>
+      <th>category</th>
+      <th>sale Price</th>
       <th id="costPriceHeader" style="display: none;">Cost Price</th>
+      <th>quantity</th>
+      <th>reorder level</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -22,6 +25,30 @@
   <button id="prevPage" disabled>Previous</button>
   <span id="pageInfo">Page 1</span>
   <button id="nextPage">Next</button>
+</div>
+
+<!-- ADJUST STOCK FORM (hidden by default) -->
+<div id="adjustStockPanel" style="display:none; margin-top:20px; border:1px solid #ccc; padding:10px;">
+  <h3>Adjust Stock: <span id="adjustProductName"></span></h3>
+  <div id="adjustMessage" style="color:red;"></div>
+
+  <label for="changeQty">Change Quantity (e.g. 10 to add, -5 to remove)</label>
+  <input type="number" id="changeQty">
+
+  <label for="adjustReason">Reason</label>
+  <select id="adjustReason">
+    <option value="">-- Select --</option>
+    <option value="purchase">Purchase (new stock)</option>
+    <option value="adjustment">Adjustment (correction)</option>
+    <option value="return">Return</option>
+    <option value="sale">Sale (manual)</option>
+  </select>
+
+  <label for="adjustNote">Note (optional)</label>
+  <input type="text" id="adjustNote">
+
+  <button type="button" id="submitAdjust">Save</button>
+  <button type="button" id="cancelAdjust">Cancel</button>
 </div>
 
 <script src="/js/product.js"></script>

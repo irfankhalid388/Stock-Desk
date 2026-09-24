@@ -13,5 +13,8 @@ router.get("/customers", pageController.customerlist);
 router.get("/customers/new", pageController.customerForm);
 router.get("/customers/:id/edit", pageController.customerForm);
 router.get("/customers/summary", pageController.customerSummary);
+// invoices///////////////////////////////////////////////////////
+router.get("/invoices", pageController.invoicesList);
+router.get("/invoices/:id", pageController.invoiceDetail);
 
 module.exports = router;

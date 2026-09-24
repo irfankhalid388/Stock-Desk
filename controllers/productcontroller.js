@@ -57,24 +57,20 @@ async function create(req,res,next){
     }
     
 }
-async function update(req,res,next){
-    try{
-     const product= await productModel.updatedata(req.params.id,req.body)
-     if(!product){
-      return  res.status(404).json({error:"product not found"})
-     }
-     res.status(200).json({
-        product
-     })
+async function update(req, res, next) {
+  try {
+    const product = await productModel.updatedata(req.params.id, req.body, req.user.id);
+    if (!product) {
+      return res.status(404).json({ error: "product not found" })
     }
-    catch(err){
-     if(err.code=== "ER_DUP_ENTRY"){
-         return res.status(409).json({
-            error:"SKU_ALREADY_EXISTS" 
-        })
-      }
-      next(err)
+    res.status(200).json({ product })
+  }
+  catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "SKU_ALREADY_EXISTS" })
     }
+    next(err)
+  }
 }
 async function remove(req,res,next){
     try{

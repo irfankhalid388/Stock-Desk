@@ -1,4 +1,6 @@
+const { transaction } = require("../config/db");
 const db=require("../config/db");
+const stockmovementModel=require("./stockmovementmodel")
 async function findall({
     page = 1,
     limit = 10,
@@ -74,31 +76,60 @@ async function createdata(data) {
         ])
         return showall(rows.insertId)
 }
-async function updatedata(id,data){
-    const sql=`UPDATE products
-        SET
-            sku = ?,
-            name = ?,
-            category_id = ?,
-            cost_price = ?,
-            sale_price = ?,
-            quantity = ?,
-            reorder_level = ?
-        WHERE id = ?`
-        const rows=await db.query(sql,[
-             data.sku,
-        data.name,
-        data.category_id,
-        data.cost_price,
-        data.sale_price,
-        data.quantity,
-        data.reorder_level,
-        id
-        ])
-        if(rows.affectedRows===0){
-         return null
-        }
-        return showall(id)
+async function updatedata(id, data, userId) {
+  return transaction(async (conn) => {
+    // Pehle purani quantity nikaalo (isi transaction ke andar, lock ke sath)
+    const [existingRows] = await conn.query(
+      `SELECT quantity FROM products WHERE id = ? FOR UPDATE`,
+      [id]
+    );
+    const existing = existingRows[0];
+    if (!existing) {
+      return null;
+    }
+    const oldQuantity = existing.quantity;
+    const newQuantity = data.quantity;
+
+    const sql = `UPDATE products
+      SET
+        sku = ?,
+        name = ?,
+        category_id = ?,
+        cost_price = ?,
+        sale_price = ?,
+        quantity = ?,
+        reorder_level = ?
+      WHERE id = ?`;
+    const [result] = await conn.query(sql, [
+      data.sku,
+      data.name,
+      data.category_id,
+      data.cost_price,
+      data.sale_price,
+      data.quantity,
+      data.reorder_level,
+      id
+    ]);
+    if (result.affectedRows === 0) {
+      return null;
+    }
+
+    // Agar quantity badli hai, movement record banao
+    const change = newQuantity - oldQuantity;
+    if (change !== 0) {
+      await stockmovementModel.stock_movements(conn, {
+        product_id: id,
+        change_qty: change,
+        reason: 'manual_edit',
+        reference_id: null,
+        user_id: userId,
+        note: `Quantity changed from ${oldQuantity} to ${newQuantity} via product edit`,
+      });
+    }
+
+    const [updatedRows] = await conn.query(`SELECT * FROM products WHERE id = ?`, [id]);
+    return updatedRows[0];
+  });
 }
 async function softdelte(id){
     const sql=` UPDATE products

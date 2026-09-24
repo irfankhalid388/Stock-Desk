@@ -18,7 +18,7 @@ async function loadCustomers(page, searchTerm) {
     updatePaginationControls(data.page, data.pages);
   } catch (err) {
     const tbody = document.getElementById("customerRows");
-    if (tbody) tbody.innerHTML = `<tr><td colspan="4">Could not load customers.</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5">Could not load customers.</td></tr>`;
   }
 }
 

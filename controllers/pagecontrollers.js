@@ -71,6 +71,19 @@ async function customerlist(req,res,next) {
     view: "customers/customersummary",
   });
 }
+function invoicesList(req, res) {
+  res.render("layouts/main", {
+    title: "Invoices",
+    view: "invoices/list",
+  });
+}
+
+function invoiceDetail(req, res) {
+  res.render("layouts/main", {
+    title: "Invoice Detail",
+    view: "invoices/detail",
+  });
+}
 
 
-module.exports = { test, productsList, productForm,customerlist,customerForm,customerSummary };
+module.exports = { test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList };

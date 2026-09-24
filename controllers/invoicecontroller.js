@@ -1,6 +1,5 @@
 // controllers/invoiceController.js
-const { cancelInvoice } = require('../models/invoicemodel');
-const { createwithitems } = require('../models/invoicemodel');
+const { createwithitems,cancelInvoice,search, list } = require('../models/invoicemodel');
 
 async function create(req, res, next) {
   try {
@@ -33,6 +32,33 @@ async function updateStatus(req, res, next) {
     next(err);
   }
 }
+// search//////////////////////////////////////////////////////
+async function getOne(req,res,next){
+  try{
+      const invoice=await search(req.params.id)
+      if(!invoice){
+         return res.status(404).json({ error: "INVOICE_NOT_FOUND" });
+      }
+       res.status(200).json(invoice);
+  }
+  catch(err){
+next(err)
+}
+}
+// LIST///////////////////////////////////////////////////
+async function getAll(req,res,next){
+  try{
+  const page=parseInt(req.query.page)||1
+  const limit = parseInt(req.query.limit) || 20;
+    const search = req.query.search || "";
+    const status = req.query.status || "";
+    const result = await list({page,limit,search,status})
+    res.status(200).json(result)
 
+}
+catch(err){
+next(err)
+}
+}
 
-module.exports = { create,updateStatus};
+module.exports = { create,updateStatus,getOne,getAll};

@@ -1,4 +1,5 @@
 const { query, transaction } = require('../config/db');
+const db=require('../config/db')
 const { next } = require('../utils/invoicenumber');
 const { decrementstock } = require('./productmodel');
 const { stock_movements } = require('./stockmovementmodel');
@@ -82,6 +83,7 @@ async function createwithitems({ customerId, userId, items, discount = 0, tax = 
 
 // CANCLE INVOICE////////////////////////////////////////////////////////////////////////////////////
 const { incrementstock } = require('./productmodel'); 
+const { param } = require('express-validator');
 
 async function cancelInvoice(invoiceId, userId) {
   return transaction(async (conn) => {
@@ -130,5 +132,67 @@ async function cancelInvoice(invoiceId, userId) {
     return { id: invoiceId, status: 'cancelled' };
   });
 }
+// search invoice////////////////////////////////////////////////////////////////////////
+async function search(id){
+const sql=`SELECT i.*, 
+            c.name AS customer_name, c.email AS customer_email,
+            u.name AS created_by_name
+     FROM invoices i
+     LEFT JOIN customers c ON c.id = i.customer_id
+     LEFT JOIN users u ON u.id = i.user_id
+     WHERE i.id = ?`
+     const rows=await db.query(sql,[id])
+    const result=rows[0]
+    if(!result){
+      return null;
+    }
+    const sql1=`SELECT ii.*, p.name AS product_name, p.sku
+     FROM invoice_items ii
+     LEFT JOIN products p ON p.id = ii.product_id
+     WHERE ii.invoice_id = ?`
+     const items=await db.query(sql1,[id])
+     return{...result,items}
+}
+// list////////////////////////////////////////////////
+async function list({page=1,limit=10,search='',status=''}){
+const offset=(page-1)*limit
+const like=`%${search}%`
+const condition=`where 1=1`
+const param=[]
+if(search){
+  condition += ` AND (i.invoice_no LIKE ? OR c.name LIKE ?)`
+  param.push(like,like)
+}
+if(status){
+  condition += ` AND i.status = ?`;
+  param.push(status)
+}
+ const countsql=`select count(*) as total_count
+from invoices i
+left join customers c on c.id=i.customer_id
+ ${condition}`
+ const countrows=await db.query(countsql,param)
+ const total=countrows[0].total_count
+const sql=`
+select
+i.id,
+i.invoice_no ,
+i.customer_id,
+c.name as customer_name,
+i.subtotal,
+i.tax,
+i.discount,
+i.total,
+i.status,
+i.created_at
+from invoices i
+left join customers c on c.id=i.customer_id
+${condition}
+order by i.id asc
+limit ? offset ?`
+const rows=await db.query(sql,[...param,Number(limit),Number(offset)])
+return { rows, total, page, pages: Math.ceil(total / limit) || 1 };
 
-module.exports = { createwithitems, cancelInvoice }; 
+}
+
+module.exports = { createwithitems, cancelInvoice,search,list }; 
