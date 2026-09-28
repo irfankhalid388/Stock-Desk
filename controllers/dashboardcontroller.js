@@ -1,36 +1,31 @@
-const reportModel=require("../models/reportmodel")
-const productModel=require("../models/productmodel")
-// GET SUMMARY/////////////////////////////////////////////////////////////////////
-async function summary(req,res,next) {
-    try{
-    const {format,to}=req.query
-    const result=await reportModel.getreport(format,to)
-    const result1=await reportModel.gettopproducts(format,to)
-    res.status(200).json({...result,top_products:result1})
+const dashboardModel = require("../models/dashboardmodel");
+
+// GET /api/dashboard
+async function overview(req, res, next) {
+  try {
+    // 1) counts sab ke liye
+    const counts = await dashboardModel.getcounts();
+
+    // 2) staff ho to yahin ruk jao, sales unhein bheji hi nahi jati
+    if (req.user.role !== "admin") {
+      return res.status(200).json({ counts });
     }
-catch(err){
-next(err)
+
+    // 3) admin ke liye baqi data, aik ke baad aik
+    const today = await dashboardModel.getsalestoday();
+    const month = await dashboardModel.getsalesmonth();
+    const unpaid = await dashboardModel.getunpaidamount();
+    const top_products = await dashboardModel.gettopproducts();
+
+    // 4) sab kuch JSON mein bhej do
+    res.status(200).json({
+      counts,
+      sales: { today, month, unpaid },
+      top_products,
+    });
+  } catch (err) {
+    next(err);
+  }
 }
-}
-// GET TOP EMPLOYEES/////////////////////////////////////////////////////////////////////
-async function gettopemployees(req,res,next){
-    try{
-     const{from,to}=req.body
-     const result=await reportModel.saleperperson(from,to)
-     res.status(200).json(result)
-    }
-    catch(err){
-    next(err)
-    }
-}
-// GET LOW STOCK ////////////////////////////////////////////////////////
-async function getlowstock(req,res,next){
-    try{
-    const result=await productModel.findlowsstock()
-    res.status(200).json(result)
-    }
-    catch(err){
-next(err)
-    }
-}
-module.exports={summary,getlowstock,gettopemployees}
+
+module.exports = { overview };

@@ -8,4 +8,5 @@ router.post('/', authrequired,rolerequired("admin","staff"),invoiceRules,validat
 router.put('/:id/status', authrequired, rolerequired('admin'), invoiceController.updateStatus);
 router.get("/:id",authrequired,rolerequired("admin","staff"),invoiceController.getOne)
 router.get('/',authrequired,rolerequired('admin','staff'),invoiceController.getAll)
+router.put('/:id/pay', authrequired, rolerequired('admin', 'staff'), invoiceController.markPaid);
 module.exports = router;

@@ -1,0 +1,30 @@
+<h1>Dashboard</h1>
+<p id="dashError" hidden>Couldn't load the dashboard. Refresh the page.</p>
+
+<h2>Overview</h2>
+<ul>
+  <li><a href="/customers">Customers</a>: <strong data-count="customers">-</strong></li>
+  <li><a href="/products">Products</a>: <strong data-count="products">-</strong></li>
+  <li><a href="/products">Low stock</a>: <strong data-count="low_stock">-</strong></li>
+  <li><a href="/invoices">Invoices</a>: <strong data-count="invoices">-</strong></li>
+  <li>Paid: <strong data-count="paid">-</strong></li>
+  <li>Unpaid: <strong data-count="unpaid">-</strong></li>
+  <li>Cancelled: <strong data-count="cancelled">-</strong></li>
+</ul>
+
+<section id="salesSection" hidden>
+  <h2>Sales</h2>
+  <ul>
+    <li>Today: <strong data-sales="today">-</strong></li>
+    <li>This month: <strong data-sales="month">-</strong></li>
+    <li>Unpaid amount: <strong data-sales="unpaid">-</strong></li>
+  </ul>
+</section>
+
+<section id="topSection" hidden>
+  <h2>Top 5 selling products this month</h2>
+  <ol id="topProducts"></ol>
+  <p id="topEmpty" hidden>No sales this month yet.</p>
+</section>
+
+<script src="/js/dashboard.js"></script>

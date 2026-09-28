@@ -86,4 +86,17 @@ function invoiceDetail(req, res) {
 }
 
 
-module.exports = { test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList };
+function invoiceForm(req, res) {
+  res.render("layouts/main", {
+    title: "Create Invoice",
+    view: "invoices/invoice_form",
+  });
+}
+
+
+function dashboardPage(req, res) {
+  res.render("layouts/main", { title: "Dashboard", view: "dashboard/dashboard" });
+}
+
+
+module.exports = { test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList,invoiceForm,dashboardPage };

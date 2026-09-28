@@ -35,6 +35,8 @@ async function loadInvoice() {
       <p><strong>Tax:</strong> ${data.tax}</p>
       <p><strong>Total:</strong> ${data.total}</p>
     `;
+    const markPaidBtn = document.getElementById("markPaidBtn");
+    if (markPaidBtn) markPaidBtn.style.display = data.status === "unpaid" ? "" : "none";
 
     if (!data.items || !data.items.length) {
       itemRowsEl.innerHTML = `<tr><td colspan="5">No items.</td></tr>`;
@@ -56,5 +58,45 @@ async function loadInvoice() {
     messageEl.textContent = "Something went wrong. Please try again.";
   }
 }
+async function cancelInvoice() {
+  const id = getInvoiceIdFromUrl();
+  const messageEl = document.getElementById("message");
+  if (!confirm("Cancel this invoice? Stock will be restored.")) return;
+
+  try {
+    const res = await request("PUT", `/api/invoices/${encodeURIComponent(id)}/status`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      messageEl.textContent = data.error || "Could not cancel invoice.";
+      return;
+    }
+    loadInvoice();
+  } catch (err) {
+    messageEl.textContent = "Something went wrong. Please try again.";
+  }
+}
+async function markInvoicePaid() {
+  const id = getInvoiceIdFromUrl();
+  const messageEl = document.getElementById("message");
+  if (!confirm("Mark this invoice as paid?")) return;
+
+  try {
+    const res = await request("PUT", `/api/invoices/${encodeURIComponent(id)}/pay`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      messageEl.textContent = data.error || data.message || "Could not mark invoice as paid.";
+      return;
+    }
+    loadInvoice();
+  } catch (err) {
+    messageEl.textContent = "Something went wrong. Please try again.";
+  }
+}
+
+const cancelBtn = document.getElementById("cancelInvoiceBtn");
+if (cancelBtn) cancelBtn.addEventListener("click", cancelInvoice);
+
+const markPaidBtn = document.getElementById("markPaidBtn");
+if (markPaidBtn) markPaidBtn.addEventListener("click", markInvoicePaid);
 
 window.authReady.then(loadInvoice);

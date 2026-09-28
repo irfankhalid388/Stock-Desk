@@ -192,7 +192,28 @@ order by i.id asc
 limit ? offset ?`
 const rows=await db.query(sql,[...param,Number(limit),Number(offset)])
 return { rows, total, page, pages: Math.ceil(total / limit) || 1 };
+}
+async function paidinvoice(id){
+  const sql=`SELECT id, status FROM invoices WHERE id = ?`
+  const rows=await db.query(sql,[id])
+  const invoice=rows[0]
+  
+  if (!invoice) {
+    const err = new Error("Invoice not found");
+    err.status = 404;
+    throw err;
+  }
 
+  if (invoice.status !== "unpaid") {
+    const err = new Error("Only unpaid invoices can be marked as paid");
+    err.status = 422;
+    throw err;
+  }
+
+
+  const sql1=`UPDATE invoices SET status = 'paid' WHERE id = ? AND status = 'unpaid'`
+  const result=await db.query(sql1,[id])
+  return{id:id,status:'paid'}
 }
 
-module.exports = { createwithitems, cancelInvoice,search,list }; 
+module.exports = { createwithitems, cancelInvoice,search,list,paidinvoice }; 

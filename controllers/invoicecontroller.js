@@ -1,15 +1,20 @@
 // controllers/invoiceController.js
-const { createwithitems,cancelInvoice,search, list } = require('../models/invoicemodel');
-
+const { createwithitems,cancelInvoice,search, list,paidinvoice } = require('../models/invoicemodel');
 async function create(req, res, next) {
   try {
     const { customerId, items, discount, tax } = req.body;
     const userId = req.user.id;
 
+    // Convert productId (camelCase, from validation) to productid (lowercase, used by model)
+    const normalizedItems = items.map((i) => ({
+      productid: i.productId,
+      quantity: i.quantity,
+    }));
+
     const invoice = await createwithitems({
       customerId,
       userId,
-      items,
+      items: normalizedItems,
       discount,
       tax,
     });
@@ -19,7 +24,6 @@ async function create(req, res, next) {
     next(err); 
   }
 }
-
 // CANCLEINVOICE
 async function updateStatus(req, res, next) {
   try {
@@ -60,5 +64,13 @@ catch(err){
 next(err)
 }
 }
-
-module.exports = { create,updateStatus,getOne,getAll};
+// paid////////////////////////////////////////////////////////////////////// invoice
+async function markPaid(req, res, next) {
+  try {
+    const result = await paidinvoice(req.params.id);
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+module.exports = { create,updateStatus,getOne,getAll,markPaid};
