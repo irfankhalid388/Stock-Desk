@@ -140,5 +140,11 @@ async function userForm(req, res, next) {
     next(err);
   }
 }
+function reportsPage(req, res) {
+  res.render("layouts/main", {
+    title: "Reports",
+    view: "reports/index",
+  });
+}
 
-module.exports = {usersPage, test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList,invoiceForm,dashboardPage,userForm,usersList };
+module.exports = {reportsPage,usersPage, test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList,invoiceForm,dashboardPage,userForm,usersList };

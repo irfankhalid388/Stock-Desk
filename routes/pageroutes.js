@@ -25,4 +25,6 @@ router.get("/dashboard",pageController.dashboardPage)
 router.get("/users", pageController.usersList);
 router.get("/users/new", pageController.userForm);
 router.get("/users/:id/edit", pageController.userForm);
+// reports/////////////////////////////////////////////
+router.get("/reports", pageController.reportsPage);
 module.exports = router;

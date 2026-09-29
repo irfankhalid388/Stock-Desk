@@ -1,0 +1,48 @@
+<h1>Reports</h1>
+
+<div id="message" role="alert"></div>
+
+<div>
+  <label for="fromDate">From</label>
+  <input type="date" id="fromDate">
+
+  <label for="toDate">To</label>
+  <input type="date" id="toDate">
+
+  <button type="button" id="applyRange">Apply</button>
+</div>
+
+<h2>Summary</h2>
+<p>Revenue: <strong id="sumRevenue">0.00</strong></p>
+<p>Cost: <strong id="sumCost">0.00</strong></p>
+<p>Profit: <strong id="sumProfit">0.00</strong></p>
+<p>Invoices: <strong id="sumInvoiceCount">0</strong></p>
+
+<h2>Top Products</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Revenue</th>
+    </tr>
+  </thead>
+  <tbody id="topProductRows">
+    <tr><td colspan="2">Loading...</td></tr>
+  </tbody>
+</table>
+
+<h2>Sales Per Staff</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Staff</th>
+      <th>Invoices</th>
+      <th>Revenue</th>
+    </tr>
+  </thead>
+  <tbody id="staffRows">
+    <tr><td colspan="3">Loading...</td></tr>
+  </tbody>
+</table>
+
+<script src="/js/reports.js"></script>
