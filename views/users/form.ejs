@@ -1,0 +1,30 @@
+<h1><%= targetUser ? "Edit User" : "Add User" %></h1>
+
+<form id="userForm">
+  <input type="hidden" id="userId" value="<%= targetUser ? targetUser.id : '' %>">
+
+  <label for="name">Name</label>
+  <input type="text" id="name" value="<%= targetUser ? targetUser.name : '' %>">
+  <span id="err-name"></span>
+
+  <label for="email">Email</label>
+  <input type="email" id="email" value="<%= targetUser ? targetUser.email : '' %>">
+  <span id="err-email"></span>
+
+  <% if (targetUser) { %>
+    <label for="role">Role</label>
+    <select id="role">
+      <option value="staff" <%= targetUser.role === "staff" ? "selected" : "" %>>Staff</option>
+      <option value="admin" <%= targetUser.role === "admin" ? "selected" : "" %>>Admin</option>
+    </select>
+  <% } else { %>
+    <label for="password">Password</label>
+    <input type="password" id="password">
+    <span id="err-password"></span>
+  <% } %>
+
+  <button type="submit"><%= targetUser ? "Save Changes" : "Create User" %></button>
+  <div id="formError" style="color:red;"></div>
+</form>
+
+<script src="/js/user_form.js"></script>

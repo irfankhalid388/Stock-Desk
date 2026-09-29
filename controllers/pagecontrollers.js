@@ -1,5 +1,5 @@
 const productModel = require("../models/productmodel");
-
+const userModel = require("../models/usermodel");
 async function test(req, res, next) {
   try {
     res.render('layouts/main', {
@@ -99,4 +99,46 @@ function dashboardPage(req, res) {
 }
 
 
-module.exports = { test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList,invoiceForm,dashboardPage };
+async function usersPage(req, res, next) {
+  try {
+    const users = await userModel.getallusers();
+
+    res.render("layouts/main", {
+      title:"staff",
+      view: "staff/staff",
+      users
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+function usersList(req, res) {
+  res.render("layouts/main", {
+    title: "Users",
+    view: "users/list",
+  });
+}
+
+async function userForm(req, res, next) {
+  try {
+    let targetUser = null;
+
+    if (req.params.id) {
+      targetUser = await userModel.findById(req.params.id);
+      if (!targetUser) {
+        return res.status(404).send("User not found");
+      }
+    }
+
+    res.render("layouts/main", {
+      title: targetUser ? "Edit User" : "Add User",
+      view: "users/form",
+      targetUser,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {usersPage, test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList,invoiceForm,dashboardPage,userForm,usersList };

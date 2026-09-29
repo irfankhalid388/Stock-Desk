@@ -33,21 +33,43 @@ async function register(req, res, next) {
     }
 }
 // /////////////////////////////////////ADDUSER///////////////////////////////////////////////////////////
-async function adduser(req,res,next){
-  try{ 
-const {name,email,password}=req.body
-const password_hash=await hash(password)
-const result=await model.create({
-            name,
-            email,
-            password_hash,
-            role:"staff"
-}) 
-res.status(200).json(result)
+async function adduser(req, res, next) {
+  try {
+    const { name, email, password } = req.body;
+    const password_hash = await hash(password);
+    const result = await model.create({
+      name,
+      email,
+      password_hash,
+      role: "staff",
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "EMAIL_ALREADY_EXISTS" });
+    }
+    next(err);
+  }
 }
-catch(err){
-next(err)
-}
+// update /////////////////////////////////////////////////////////////////
+async function updateuser(req, res, next) {
+  try {
+    const targetId = Number(req.params.id);
+    const { name, email, role } = req.body;
+
+    const updated = await model.updateUser(targetId, { name, email, role });
+    if (!updated) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
+
+    const user = await model.findById(targetId);
+    res.status(200).json(user);
+  } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "EMAIL_ALREADY_EXISTS" });
+    }
+    next(err);
+  }
 }
 // //////////////////////////////DEACTIVATE//////////////////////////////////
 async function deactivate(req,res,next){
@@ -217,6 +239,22 @@ async function me(req, res, next) {
     next(err);
   }
 }
+// get all users/////////////////////////////////////////////////
+// controllers/authcontroller.js
+
+async function getallusers(req, res, next) {
+  try {
+    const users = await model.getallusers();
+    const total = await model.countuser();
+
+    res.status(200).json({
+      total,
+      users
+    });
+  } catch (err) {
+    next(err);
+  }
+}
 // ///////////////////////////EXPORTS/////////////////////////////////////
 module.exports={
     register,
@@ -226,5 +264,7 @@ module.exports={
     adduser,
     me,
     deactivate,
-    changepassword
+    changepassword,
+    getallusers,
+    updateuser
 }

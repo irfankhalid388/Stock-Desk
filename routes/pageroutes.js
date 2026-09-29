@@ -21,4 +21,8 @@ router.get("/invoices", pageController.invoicesList);
 router.get("/invoices/:id", pageController.invoiceDetail);
 // dashboard/////////////////////////
 router.get("/dashboard",pageController.dashboardPage)
+// users//////////////////////////////
+router.get("/users", pageController.usersList);
+router.get("/users/new", pageController.userForm);
+router.get("/users/:id/edit", pageController.userForm);
 module.exports = router;

@@ -71,7 +71,13 @@ async function loadUserRole() {
   if (user.role === "admin") {
     const reportsLink = document.getElementById("reportsLink");
     if (reportsLink) reportsLink.style.display = "";
+// /////////////////////////////////////////////////////users
+  const usersLink = document.getElementById("usersLink");
+  if (usersLink) usersLink.style.display = "";
+
+    
   }
+
 
   document.dispatchEvent(new CustomEvent("userRoleLoaded", { detail: user }));
 }

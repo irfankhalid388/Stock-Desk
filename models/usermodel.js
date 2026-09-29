@@ -1,5 +1,14 @@
 const db=require("../config/db")
 require("dotenv").config()
+async function getallusers() {
+  const sql = `
+    SELECT id, name, email, role, is_active
+    FROM users
+    ORDER BY id DESC
+  `;
+  const rows = await db.query(sql, []);
+  return rows;
+}
 async function create({name, email, password_hash, role}) {
     const sql=`INSERT INTO users (name, email, password_hash, role)
 VALUES (?, ?, ?, ?);
@@ -72,6 +81,12 @@ async function findByIdWithPassword(id){
     const result=await db.query(sql,[id])
     return result[0] || null
 }
+// update users/////////////////////////////////////////////////////////
+async function updateUser(id, { name, email, role }) {
+  const sql = `UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?`;
+  const result = await db.query(sql, [name, email, role, id]);
+  return result.affectedRows > 0;
+}
 // ///////////////////////////////////EXPORTS///////////////////////////////////
 module.exports={
     create,
@@ -84,5 +99,7 @@ module.exports={
     revokeAllForUser,
     deactivate,
     updatepassword,
-    findByIdWithPassword
+    findByIdWithPassword,
+    getallusers,
+    updateUser
 };
