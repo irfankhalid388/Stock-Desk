@@ -32,6 +32,11 @@ async function doRefresh() {
 
   return refreshPromise;
 }
+
+function isAuthRoute(url) {
+  return url.startsWith("/api/auth/");
+}
+
 // ///////////////////////////////////////////request used in other js
 async function request(method, url, body) {
     if (window.authReady) {           // this whole block is new — old version started straight at "const headers = ..."
@@ -49,7 +54,7 @@ async function request(method, url, body) {
     body: body ? JSON.stringify(body) : undefined
   });
 
-  if (res.status === 401) {
+  if (res.status === 401 && !isAuthRoute(url)) {
     const refreshed = await doRefresh();
     if (refreshed) {
       headers["Authorization"] = `Bearer ${accesstoken}`;
@@ -59,6 +64,9 @@ async function request(method, url, body) {
         credentials: "include",
         body: body ? JSON.stringify(body) : undefined
       });
+    }
+    else{
+      window.location.herf="/login"
     }
   }
 
