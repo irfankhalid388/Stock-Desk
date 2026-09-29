@@ -1,10 +1,10 @@
 let accesstoken = null;
 let refreshPromise = null;
-
+// access token///////////////////////////////////////////////////////////
 function setAccessToken(token) {
   accesstoken = token;
 }
-
+// refreshing/////////////////////////////////////////////////////////////
 async function doRefresh() {
   if (refreshPromise) {
     return refreshPromise;
@@ -32,8 +32,11 @@ async function doRefresh() {
 
   return refreshPromise;
 }
-
+// ///////////////////////////////////////////request used in other js
 async function request(method, url, body) {
+    if (window.authReady) {           // this whole block is new — old version started straight at "const headers = ..."
+    await window.authReady;
+  }
   const headers = { "Content-Type": "application/json" };
   if (accesstoken) {
     headers["Authorization"] = `Bearer ${accesstoken}`;
@@ -61,7 +64,7 @@ async function request(method, url, body) {
 
   return res;
 }
-
+//////////////////////////////////// load user get logged in user role
 async function loadUserRole() {
   const res = await request("GET", "/api/auth/me");
   if (!res.ok) return;
@@ -81,7 +84,7 @@ async function loadUserRole() {
 
   document.dispatchEvent(new CustomEvent("userRoleLoaded", { detail: user }));
 }
-
+// init auth///////////////////////////////////////////////
 async function initAuth() {
   try {
     const refreshed = await doRefresh();
@@ -92,6 +95,7 @@ async function initAuth() {
     console.error("Failed to refresh session", err);
   }
 }
+// logout button ///////////////////////////////////////////////////////////////
 document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout");
   if (logoutBtn) {

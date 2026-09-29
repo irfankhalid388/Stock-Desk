@@ -1,5 +1,10 @@
 const db=require("../config/db")
 require("dotenv").config()
+// normalize email///////////////////////////////////////////////////////////////////
+function normalizeEmail(email) {
+  return email.trim().toLowerCase();
+}
+// get all users//////////////////////////////////////////////////////////////////////
 async function getallusers() {
   const sql = `
     SELECT id, name, email, role, is_active
@@ -9,11 +14,12 @@ async function getallusers() {
   const rows = await db.query(sql, []);
   return rows;
 }
+// create////////////////////////////
 async function create({name, email, password_hash, role}) {
     const sql=`INSERT INTO users (name, email, password_hash, role)
 VALUES (?, ?, ?, ?);
 `
-const rows=await db.query(sql , [name, email, password_hash, role])
+const rows=await db.query(sql , [name, normalizeEmail(email), password_hash, role])
 return rows
 }
 // ///////////////////FINDBYEMAIL////////////////////////////////////////
@@ -21,7 +27,7 @@ async function FindByEmail(email){
     const sql=`SELECT id, name, email, password_hash, role, is_active
      FROM users
      WHERE email = ?`
-    const rows= await db.query(sql,[email])
+    const rows= await db.query(sql,[normalizeEmail(email)])
     return rows[0] || null
 }
 // ////////////////////////////SAVEREFRESHTOKEN///////////////////////////////////////
@@ -84,7 +90,7 @@ async function findByIdWithPassword(id){
 // update users/////////////////////////////////////////////////////////
 async function updateUser(id, { name, email, role }) {
   const sql = `UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?`;
-  const result = await db.query(sql, [name, email, role, id]);
+  const result = await db.query(sql, [name,normalizeEmail(email), role, id]);
   return result.affectedRows > 0;
 }
 // ///////////////////////////////////EXPORTS///////////////////////////////////

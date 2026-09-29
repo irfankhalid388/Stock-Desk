@@ -29,7 +29,11 @@ async function register(req, res, next) {
         })
     }
     catch (err) {
-        next(err)
+       if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "EMAIL_ALREADY_EXISTS" });
+    }  
+      next(err)
+
     }
 }
 // /////////////////////////////////////ADDUSER///////////////////////////////////////////////////////////
@@ -107,7 +111,7 @@ if(!user){
 }
 const match=await compare(currentPassword,user.password_hash)
 if(!match){
-     return res.status(401).json({ error: 'Current password is incorrect' });
+     return res.status(400).json({ error: 'Current password is incorrect' });
 }
 const newHash = await hash(newPassword);
     await model.updatepassword(user.id, newHash);
