@@ -17,6 +17,7 @@
       <option value="staff" <%= targetUser.role === "staff" ? "selected" : "" %>>Staff</option>
       <option value="admin" <%= targetUser.role === "admin" ? "selected" : "" %>>Admin</option>
     </select>
+    <span id="err-role"></span>
   <% } else { %>
     <label for="password">Password</label>
     <input type="password" id="password">

@@ -10,12 +10,18 @@ async function createwithitems({ customerId, userId, items, discount = 0, tax = 
     err.status = 422;
     throw err;
   }
+  const merged = new Map();
+for (const i of items) {
+  const pid = Number(i.productid);
+  merged.set(pid, (merged.get(pid) || 0) + Number(i.quantity));
+}
+items = [...merged].map(([productid, quantity]) => ({ productid, quantity }));
 
   return transaction(async (conn) => {
     // 1. Lock and validate stock
     const productID = items.map((i) => i.productid);
     const [rows] = await conn.query(
-      `SELECT id, name, sale_price, quantity FROM products WHERE id IN (?) FOR UPDATE`,
+      `SELECT id, name,cost_price,sale_price,quantity FROM products WHERE id IN (?) AND is_active=1 FOR UPDATE`,
       [productID]
     );
     const productsmap = new Map(rows.map((p) => [p.id, p]));
@@ -35,16 +41,25 @@ async function createwithitems({ customerId, userId, items, discount = 0, tax = 
     }
 
     // 2. Server-side recalculation
-    let subtotal = 0;
-    const lineitems = items.map((item) => {
-      const product = productsmap.get(item.productid);
-      const unitprice = product.sale_price;
-      const linetotal = unitprice * item.quantity;
-      subtotal += linetotal;
-      return { ...item, unitprice, linetotal };
-    });
-    const total = subtotal - discount + tax;
+    discount = Number(discount);
+tax = Number(tax);
 
+let subtotal = 0;
+const lineitems = items.map((item) => {
+  const product = productsmap.get(item.productid);
+  const unitprice = product.sale_price;
+  const costprice = product.cost_price;
+  const linetotal = unitprice * item.quantity;
+  subtotal += linetotal;
+  return { ...item, unitprice, costprice, linetotal };
+});
+
+if (discount > subtotal) {
+  const err = new Error("Discount cannot be more than the subtotal");
+  err.status = 422;
+  throw err;
+}
+const total = subtotal - discount + tax;
     // 3. Insert invoice
     const invoiceno = await next(conn);
     const [invoiceResult] = await conn.query(
@@ -59,13 +74,17 @@ async function createwithitems({ customerId, userId, items, discount = 0, tax = 
     for (const item of lineitems) {
       await conn.query(
         `INSERT INTO invoice_items
-          (invoice_id, product_id, quantity, unit_price, line_total)
+          (invoice_id, product_id, quantity, unit_price,cost_price,line_total)
          VALUES (?, ?, ?, ?, ?)`,
-        [invoiceid, item.productid, item.quantity, item.unitprice, item.linetotal]
+        [invoiceid, item.productid, item.quantity, item.unitprice,item.cost_price,item.linetotal]
       );
 
-      await decrementstock(conn, item.productid, item.quantity);
-
+    const decremented=  await decrementstock(conn, item.productid, item.quantity);
+    if (!decremented) {
+  const err = new Error("Not enough stock");
+  err.status = 422;
+  throw err;
+}
       await stock_movements(conn, {
         product_id: item.productid,
         change_qty: -item.quantity,
@@ -83,9 +102,7 @@ async function createwithitems({ customerId, userId, items, discount = 0, tax = 
 
 // CANCLE INVOICE////////////////////////////////////////////////////////////////////////////////////
 const { incrementstock } = require('./productmodel'); 
-const { param } = require('express-validator');
-
-async function cancelInvoice(invoiceId, userId) {
+async function cancelInvoice(invoiceId, userId,userRole) {
   return transaction(async (conn) => {
     const [invoiceRows] = await conn.query(
       `SELECT * FROM invoices WHERE id = ? FOR UPDATE`,
@@ -99,12 +116,22 @@ async function cancelInvoice(invoiceId, userId) {
       err.status = 404;
       throw err;
     }
+    if (userRole === 'staff' && invoice.user_id !== userId) {
+      const err = new Error('You can only cancel invoices you created');
+      err.status = 403;
+      throw err;
+    }
 
     if (invoice.status === 'cancelled') {
       const err = new Error('Invoice is already cancelled');
       err.status = 422;
       throw err;
     }
+    if (invoice.status === 'paid') {
+  const err = new Error('Paid invoices cannot be cancelled');
+  err.status = 422;
+  throw err;
+}
 
     const [items] = await conn.query(
       `SELECT * FROM invoice_items WHERE invoice_id = ?`,

@@ -16,6 +16,7 @@ const{notFound,
 const app=express()
 // etag/////////////////////////
 app.set("etag", false);
+if (process.env.NODE_ENV === "production") app.set("trust proxy", 1)
 // for security secuirty headers first
 app.use(helmet())
 // parse json bodies

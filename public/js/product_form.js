@@ -1,13 +1,4 @@
 const form = document.getElementById("productForm");
-
-function clearErrors() {
-  document.querySelectorAll("[id^='err-']").forEach((span) => {
-    span.textContent = "";
-  });
-  const formError = document.getElementById("formError");
-  if (formError) formError.textContent = "";
-}
-
 function getFormPayload() {
   return {
     sku: document.getElementById("sku").value.trim(),
@@ -19,20 +10,10 @@ function getFormPayload() {
     reorder_level: document.getElementById("reorder_level").value,
   };
 }
-
-function showErrors(errors) {
-  Object.keys(errors).forEach((field) => {
-    const span = document.getElementById(`err-${field}`);
-    if (span) {
-      span.textContent = errors[field];
-    }
-  });
-}
-
 if (form) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    clearErrors();
+    clearFieldErrors();
 
     const payload = getFormPayload();
 
@@ -40,24 +21,23 @@ if (form) {
     const isEditMode = Boolean(productId);
     const method = isEditMode ? "PUT" : "POST";
     const url = isEditMode ? `/api/products/${productId}` : "/api/products";
-
+    const formError = document.getElementById("formError");
     const res = await request(method, url, payload);
-
     if (res.status === 422) {
-      const data = await res.json();
-      showErrors(data.errors);
-      return;
-    }
-
-    if (!res.ok) {
-      console.error(`Failed to ${isEditMode ? "update" : "create"} product`, res.status);
-      const formError = document.getElementById("formError");
-      if (formError) {
-        formError.textContent = "Something went wrong. Please try again.";
-      }
-      return;
-    }
-
-    window.location.href = "/products";
+  const data = await res.json().catch(() => ({}));
+  const leftover = showFieldErrors(data.errors);
+  if (leftover.length && formError) formError.textContent = leftover.join(". ");
+  return;
+}
+if (res.status === 409) {
+  showFieldErrors({ sku: "This SKU already exists" });
+  return;
+}
+if (!res.ok) {
+  const data = await res.json().catch(() => ({}));
+  if (formError) formError.textContent = data.message || "Something went wrong. Please try again.";
+  return;
+}
+window.location.href = "/products";
   });
 }

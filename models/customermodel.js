@@ -61,7 +61,7 @@ async function findwithinvoicetotals(id) {
        COALESCE(SUM(i.total), 0) AS total_spent, 
        COUNT(i.id) AS invoice_count
 FROM customers c
-LEFT JOIN invoices i ON i.customer_id = c.id
+LEFT JOIN invoices i ON i.customer_id = c.id AND i.status!="cancelled"
 WHERE c.id = ?
 GROUP BY c.id`
 const rows=await db.query(sql,[id])

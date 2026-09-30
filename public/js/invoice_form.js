@@ -169,8 +169,8 @@ submitBtn.addEventListener("click", async () => {
   messageEl.textContent = "";
 
   if (!selectedCustomerId) {
-    messageEl.textContent = "Please select a customer.";
-    return;
+      messageEl.textContent = "Please select a customer.";
+    return; 
   }
 
   const validItems = items.filter((i) => i.productId && i.quantity > 0);
@@ -190,10 +190,12 @@ submitBtn.addEventListener("click", async () => {
     const res = await request("POST", "/api/invoices", payload);
 
     if (res.status === 422) {
-      const data = await res.json();
-      messageEl.textContent = data.error || "Validation failed.";
-      return;
-    }
+  const data = await res.json().catch(() => ({}));
+  messageEl.textContent = data.errors
+    ? Object.values(data.errors).join(". ")
+    : data.error || "Validation failed.";
+  return;
+}
 
     if (!res.ok) {
       messageEl.textContent = "Something went wrong. Please try again.";

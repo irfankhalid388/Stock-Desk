@@ -119,10 +119,12 @@ if (submitAdjustBtn) {
       });
 
       if (res.status === 422) {
-        const data = await res.json();
-        adjustMessage.textContent = data.error || "Could not adjust stock.";
-        return;
-      }
+  const data = await res.json().catch(() => ({}));
+  adjustMessage.textContent = data.errors
+    ? Object.values(data.errors).join(". ")
+    : data.error || "Could not adjust stock.";
+  return;
+}
 
       if (!res.ok) {
         adjustMessage.textContent = "Something went wrong. Please try again.";

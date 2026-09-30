@@ -75,6 +75,7 @@ CREATE TABLE invoice_items (
     product_id INT NOT NULL,
     quantity INT NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
+    cost_price DECIMAL(10,2) NOT NULL,
     line_total DECIMAL(10,2) NOT NULL,
 
     FOREIGN KEY (invoice_id) REFERENCES invoices(id) on delete cascade,

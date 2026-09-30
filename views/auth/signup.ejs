@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Sign up</title>
 </head>
 <body>
     <form action="" id="signupform">
     <label for="email">Email</label>
     <input type="email" id="email" placeholder="email required">
+    <span id="err-email"></span>
     <label for="name">Name</label>
     <input type="text" id="name" placeholder="Enter your name ">
+    <span id="err-name"></span>
     <label for="password">Password</label>
     <input type="password" id="password" placeholder="Enter password">
+    <span id="err-password"></span>
      <button type="submit">sign up</button>
      </form>
      <p id="errorMsg" style="color:red;"></p>

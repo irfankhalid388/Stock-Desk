@@ -88,7 +88,7 @@ if (nextBtn) {
 document.addEventListener("userRoleLoaded", function (e) {
   currentUserRole = e.detail.role;
   const addbtn = document.getElementById("addbtn");
-  if (addbtn) addbtn.style.display = e.detail.role === "admin" ? "" : "none";
+  if (addbtn) addbtn.style.display = "";
   const summaryLink = document.getElementById("summaryLink");
   if (summaryLink) summaryLink.style.display = e.detail.role === "admin" ? "" : "none";
 });

@@ -39,7 +39,7 @@ async function findall({
         rows,
         total,
         page,
-        pages: Math.ceil(total / limit)
+        pages: Math.ceil(total / limit) || 1
     };
 }
 async function showall(id){
@@ -120,7 +120,7 @@ async function updatedata(id, data, userId) {
       await stockmovementModel.stock_movements(conn, {
         product_id: id,
         change_qty: change,
-        reason: 'manual_edit',
+        reason: 'adjsutment',
         reference_id: null,
         user_id: userId,
         note: `Quantity changed from ${oldQuantity} to ${newQuantity} via product edit`,

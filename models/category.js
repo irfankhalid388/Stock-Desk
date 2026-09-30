@@ -7,7 +7,7 @@ async function findall(){
 }
 // insert the category/////////////////////////////////////////////////
 async function create(data){
-    const sql=`insert into categories(name)values ?`
+    const sql=`insert into categories(name)values(?)`
     const res=await db.query(sql,[data.name])
     return {
         id:res.insertId,

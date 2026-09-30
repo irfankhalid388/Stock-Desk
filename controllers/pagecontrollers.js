@@ -1,21 +1,12 @@
 const productModel = require("../models/productmodel");
 const userModel = require("../models/usermodel");
-async function test(req, res, next) {
-  try {
-    res.render('layouts/main', {
-      title: 'Test',
-      view: 'test'
-    });
-  } catch (err) {
-    next(err);
-  }
-}
+const customerModel = require("../models/customermodel");
 
 async function productsList(req, res, next) {
   try {
     res.render('layouts/main', {
       title: 'Products',
-      view: 'products/list'
+      view: 'products/list',
     });
   } catch (err) {
     next(err);
@@ -29,7 +20,7 @@ async function productForm(req, res, next) {
     if (req.params.id) {
       product = await productModel.showall(req.params.id);
       if (!product) {
-        return res.status(404).send('Product not found');
+        return notFound(res, "Product not found.");
       }
     }
 
@@ -42,35 +33,47 @@ async function productForm(req, res, next) {
     next(err);
   }
 }
-async function customerlist(req,res,next) {
-  try{
-   res.render('layouts/main',{
-    title:"customers",
-    view:'customers/list'
-   })
-  }
-  catch(err){
-   next(err)
+
+async function customerlist(req, res, next) {
+  try {
+    res.render('layouts/main', {
+      title: "customers",
+      view: 'customers/list'
+    });
+  } catch (err) {
+    next(err);
   }
 }
-   function customerForm(req, res) {
-    try{
-     res.render("layouts/main", {
-       title: req.params.id ? "Edit Customer" : "Add Customer",
-       view: "customers/form",
-       customer: req.customer || null,   // however you're loading it — see below
-     });
-   }
-   catch(err){
-    next(err)
-   }
+
+// edit mode mein customer DB se load hota hai
+async function customerForm(req, res, next) {
+  try {
+    let customer = null;
+
+    if (req.params.id) {
+      customer = await customerModel.showall(req.params.id);
+      if (!customer) {
+        return notFound(res, "Customer not found.");
+      }
+    }
+
+    res.render("layouts/main", {
+      title: customer ? "Edit Customer" : "Add Customer",
+      view: "customers/form",
+      customer,
+    });
+  } catch (err) {
+    next(err);
   }
-  function customerSummary(req, res) {
+}
+
+function customerSummary(req, res) {
   res.render("layouts/main", {
     title: "Customer Summary",
     view: "customers/customersummary",
   });
 }
+
 function invoicesList(req, res) {
   res.render("layouts/main", {
     title: "Invoices",
@@ -85,7 +88,6 @@ function invoiceDetail(req, res) {
   });
 }
 
-
 function invoiceForm(req, res) {
   res.render("layouts/main", {
     title: "Create Invoice",
@@ -93,30 +95,19 @@ function invoiceForm(req, res) {
   });
 }
 
-
 function dashboardPage(req, res) {
   res.render("layouts/main", { title: "Dashboard", view: "dashboard/dashboard" });
 }
 
-
-async function usersPage(req, res, next) {
-  try {
-    const users = await userModel.getallusers();
-
-    res.render("layouts/main", {
-      title:"staff",
-      view: "staff/staff",
-      users
-    });
-  } catch (err) {
-    next(err);
-  }
-}
-
 function usersList(req, res) {
+  const flash = req.query.saved
+    ? { type: "success", message: "User saved." }
+    : null;
+
   res.render("layouts/main", {
     title: "Users",
     view: "users/list",
+    flash,
   });
 }
 
@@ -127,7 +118,7 @@ async function userForm(req, res, next) {
     if (req.params.id) {
       targetUser = await userModel.findById(req.params.id);
       if (!targetUser) {
-        return res.status(404).send("User not found");
+        return notFound(res, "User not found.");
       }
     }
 
@@ -140,6 +131,7 @@ async function userForm(req, res, next) {
     next(err);
   }
 }
+
 function reportsPage(req, res) {
   res.render("layouts/main", {
     title: "Reports",
@@ -147,4 +139,26 @@ function reportsPage(req, res) {
   });
 }
 
-module.exports = {reportsPage,usersPage, test, productsList, productForm,customerlist,customerForm,customerSummary,invoiceDetail,invoicesList,invoiceForm,dashboardPage,userForm,usersList };
+function notFound(res, message) {
+  return res.status(404).render("layouts/main", {
+    title: "Not found",
+    view: "errors/notfound",
+    flash: { type: "error", message },
+  });
+}
+
+module.exports = {
+  notFound,
+  reportsPage,
+  productsList,
+  productForm,
+  customerlist,
+  customerForm,
+  customerSummary,
+  invoiceDetail,
+  invoicesList,
+  invoiceForm,
+  dashboardPage,
+  userForm,
+  usersList,
+};

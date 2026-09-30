@@ -36,10 +36,26 @@ async function doRefresh() {
 function isAuthRoute(url) {
   return url.startsWith("/api/auth/");
 }
+// for feild erros/////////////////////////////////////////////////
+function clearFieldErrors() {
+  document.querySelectorAll("[id^='err-']").forEach((s) => (s.textContent = ""));
+  const fe = document.getElementById("formError");
+  if (fe) fe.textContent = "";
+}
+
+function showFieldErrors(errors) {
+  const leftover = [];
+  Object.entries(errors || {}).forEach(([field, msg]) => {
+    const span = document.getElementById(`err-${field}`);
+    if (span) span.textContent = msg;
+    else leftover.push(msg);
+  });
+  return leftover;
+}
 
 // ///////////////////////////////////////////request used in other js
 async function request(method, url, body) {
-    if (window.authReady) {           // this whole block is new — old version started straight at "const headers = ..."
+    if (window.authReady && !isAuthRoute(url)) {           // this whole block is new — old version started straight at "const headers = ..."
     await window.authReady;
   }
   const headers = { "Content-Type": "application/json" };
@@ -66,7 +82,7 @@ async function request(method, url, body) {
       });
     }
     else{
-      window.location.herf="/login"
+      window.location.href="/login"
     }
   }
 

@@ -81,7 +81,7 @@ if (nextBtn) {
 document.addEventListener("userRoleLoaded", function (e) {
   userRole = e.detail.role;
   const createBtn = document.getElementById("createbtn");
-  if (createBtn) createBtn.style.display = e.detail.role === "admin" ? "" : "none";
+  if (createBtn) createBtn.style.display = "";
 });
 
 window.authReady.then(() => loadInvoices(1, ""));

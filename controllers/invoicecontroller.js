@@ -29,8 +29,9 @@ async function updateStatus(req, res, next) {
   try {
     const invoiceId = req.params.id;
     const userId = req.user.id;
+     const userRole = req.user.role;
 
-    const result = await cancelInvoice(invoiceId, userId);
+    const result = await cancelInvoice(invoiceId, userId,userRole);
     res.status(200).json(result);
   } catch (err) {
     next(err);

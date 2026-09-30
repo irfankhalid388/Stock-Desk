@@ -47,7 +47,7 @@ async function adduser(req, res, next) {
       password_hash,
       role: "staff",
     });
-    res.status(201).json(result);
+    res.status(201).json({ id: result.insertId });
   } catch (err) {
     if (err.code === "ER_DUP_ENTRY") {
       return res.status(409).json({ error: "EMAIL_ALREADY_EXISTS" });
@@ -60,6 +60,12 @@ async function updateuser(req, res, next) {
   try {
     const targetId = Number(req.params.id);
     const { name, email, role } = req.body;
+    if (targetId === req.user.id && role !== "admin") {
+  return res.status(400).json({
+    error: "CANNOT_CHANGE_OWN_ROLE",
+    message: "you cannot remove your own admin role"
+  });
+}
 
     const updated = await model.updateUser(targetId, { name, email, role });
     if (!updated) {

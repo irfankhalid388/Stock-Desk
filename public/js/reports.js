@@ -25,13 +25,14 @@ function defaultTo() {
 function renderTopProducts(rows) {
   const tbody = document.getElementById("topProductRows");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="2">No sales in this range.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3">No sales in this range.</td></tr>`;
     return;
   }
   tbody.innerHTML = rows
     .map(
       (p) => `<tr>
         <td>${escapeHtml(p.name)}</td>
+        <td>${p.units_sold}</td>
         <td>${money(p.revenue)}</td>
       </tr>`
     )
@@ -82,6 +83,10 @@ async function loadReports() {
 
   document.getElementById("fromDate").value = from;
   document.getElementById("toDate").value = to;
+  if (from > to) {
+    messageEl.textContent = "The 'from' date must be before the 'to' date.";
+    return;
+  }
 
   try {
     const summaryOk = await loadSummary(from, to);

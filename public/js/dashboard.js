@@ -28,7 +28,7 @@ function renderTopProducts(list) {
 
   list.forEach((p) => {
     const li = document.createElement("li");
-    li.textContent = p.name + " - " + money(p.revenue);
+      li.textContent = p.name + " - " + p.units_sold + " units (" + money(p.revenue) + ")";
     box.appendChild(li);
   });
 }

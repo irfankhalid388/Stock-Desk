@@ -23,6 +23,8 @@ const adjustRules = [
     .exists()
     .withMessage("change_qty is required")
     .isInt()
+    .withMessage("change_qty must be a non-zero whole number")
+    .custom((v) => Number(v) !== 0)
     .withMessage("change_qty must be a non-zero whole number"),
 
   body("reason")
@@ -87,14 +89,14 @@ const productRules = [
 
 
   body("quantity")
-    .exists({ checkFalsy: true })
+    .exists()
     .withMessage("quantity is required")
     .isInt({ min: 0 })
     .withMessage("quantity must be a whole number, zero or more"),
 
 
   body("reorder_level")
-    .exists({ checkFalsy: true })
+    .exists()
     .withMessage("reorder_level is required")
     .isInt({ min: 0 })
     .withMessage("reorder_level must be a whole number, zero or more"),
@@ -170,4 +172,18 @@ const invoiceRules = [
 
   return res.status(422).json({ errors });
 }
-module.exports={productRules,validate,adjustRules,customerRules,registerRules,loginRules,changePasswordRules,invoiceRules}
+const userUpdateRules = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('Name is required')
+    .isLength({ max: 100 }).withMessage('Name is too long'),
+
+  body('email')
+    .trim()
+    .isEmail().withMessage('Must be a valid email')
+    .normalizeEmail(),
+
+  body('role')
+    .isIn(['admin', 'staff']).withMessage('Role must be admin or staff')
+];
+module.exports={userUpdateRules,productRules,validate,adjustRules,customerRules,registerRules,loginRules,changePasswordRules,invoiceRules}

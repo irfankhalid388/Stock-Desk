@@ -96,7 +96,7 @@ VALUES
 ('INV-014', 7, 2, 3500.00, 100.00, 170.00, 3570.00, 'paid'),
 ('INV-015', 10, 2, 11500.00, 1000.00, 525.00, 11025.00, 'unpaid');
 -- INVOICE_ITEMS//////////////////////////////////////////////////////
-insert into invoice_items(invoice_id,product_id,quantity,unit_price,line_total)values
+insert into invoice_items(invoice_id,product_id,quantity,unit_price,cost_price,line_total)values
 (1,5,2,2400,4800),
 (2,26,2,3800,7600);
 -- STOCK_MOVEMENTS/////////////////////////////////////////////

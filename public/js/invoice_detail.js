@@ -8,6 +8,17 @@ function getInvoiceIdFromUrl() {
   const parts = window.location.pathname.split("/");
   return parts[parts.length - 1];
 }
+
+// cancle invoice button///////////////////////////////////
+function updateCancelButtonVisibility() {
+  const cancelBtn = document.getElementById("cancelInvoiceBtn");
+  if (!cancelBtn || !window.currentUserRole) return;
+
+  const canCancelRole = window.currentUserRole === "admin" || window.currentUserRole === "staff";
+  const notCancelled = window.currentInvoiceStatus === "unpaid";
+
+  cancelBtn.style.display = canCancelRole && notCancelled ? "" : "none";
+}
 // load invoice////////////////////////////////////
 async function loadInvoice() {
   const id = getInvoiceIdFromUrl();
@@ -24,6 +35,8 @@ async function loadInvoice() {
     }
 
     const data = await res.json();
+    window.currentInvoiceStatus = data.status;
+updateCancelButtonVisibility();
 
     infoEl.innerHTML = `
       <p><strong>Invoice No:</strong> ${escapeHtml(data.invoice_no)}</p>
@@ -67,7 +80,7 @@ async function cancelInvoice() {
     const res = await request("PUT", `/api/invoices/${encodeURIComponent(id)}/status`);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      messageEl.textContent = data.error || "Could not cancel invoice.";
+      messageEl.textContent = data.message || "Could not cancel invoice.";
       return;
     }
     loadInvoice();
@@ -84,7 +97,7 @@ async function markInvoicePaid() {
     const res = await request("PUT", `/api/invoices/${encodeURIComponent(id)}/pay`);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      messageEl.textContent = data.error || data.message || "Could not mark invoice as paid.";
+      messageEl.textContent = data.message|| data.error || "Could not mark invoice as paid.";
       return;
     }
     loadInvoice();
@@ -99,4 +112,9 @@ if (cancelBtn) cancelBtn.addEventListener("click", cancelInvoice);
 const markPaidBtn = document.getElementById("markPaidBtn");
 if (markPaidBtn) markPaidBtn.addEventListener("click", markInvoicePaid);
 
+
+document.addEventListener("userRoleLoaded", function (e) {
+  window.currentUserRole = e.detail.role;
+  updateCancelButtonVisibility();
+});
 window.authReady.then(loadInvoice);
