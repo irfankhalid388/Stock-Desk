@@ -1,24 +1,42 @@
 let currentPage = 1;
 let currentUserRole = null;
 let debounceTimer;
+let latestRequest = 0;
 
 const search = document.getElementById("search");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
+const messageEl = document.getElementById("message");
+
+function showMessage(msg) {
+  if (messageEl) messageEl.textContent = msg;
+}
 
 // LOAD CUSTOMERS ////////////////////////////////////////////////
 async function loadCustomers(page, searchTerm) {
+  const myRequest = ++latestRequest;
   try {
     const res = await request(
       "GET",
       `/api/customers?search=${encodeURIComponent(searchTerm)}&page=${page}`
     );
+
+    // naya request shuru ho chuka hai, ye purana jawab ignore karo
+    if (myRequest !== latestRequest) return;
+
+    if (!res.ok) {
+      showMessage(messageFor(res.status, await readJson(res)));
+      return;
+    }
+
+    showMessage("");
     const data = await res.json();
     renderCustomerRows(data.rows);
     updatePaginationControls(data.page, data.pages);
   } catch (err) {
-    const tbody = document.getElementById("customerRows");
-    if (tbody) tbody.innerHTML = `<tr><td colspan="5">Could not load customers.</td></tr>`;
+    console.error(err);
+    if (myRequest !== latestRequest) return;
+    showMessage("Could not load customers. Please try again.");
   }
 }
 
@@ -28,12 +46,6 @@ function updatePaginationControls(page, pages) {
   document.getElementById("pageInfo").textContent = `Page ${page} of ${pages}`;
   prevBtn.disabled = page <= 1;
   nextBtn.disabled = page >= pages;
-}
-// ESCAPE HTML////////////////////////////////////////////
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 // RENDER CUSTOMER ROWS /////////////////////////////////////////
@@ -50,8 +62,8 @@ function renderCustomerRows(customers) {
   tbody.innerHTML = customers
     .map(
       (c) => `<tr>
-      <td>${escapeHtml(c.id)}</td>  
-      <td>${escapeHtml(c.name)}</td>
+        <td>${escapeHtml(c.id)}</td>
+        <td>${escapeHtml(c.name)}</td>
         <td>${escapeHtml(c.email)}</td>
         <td>${escapeHtml(c.phone)}</td>
         <td>${escapeHtml(c.address)}</td>
@@ -84,11 +96,15 @@ if (nextBtn) {
   });
 }
 
-// ADD CUSTOMER (admin only) //////////////////////////////////
+// ROLE: summary sirf admin ko, Add customer sab ko ///////////////
 document.addEventListener("userRoleLoaded", function (e) {
   currentUserRole = e.detail.role;
+
+  // Add customer: admin aur staff dono
   const addbtn = document.getElementById("addbtn");
   if (addbtn) addbtn.style.display = "";
+
+  // Summary: sirf admin
   const summaryLink = document.getElementById("summaryLink");
   if (summaryLink) summaryLink.style.display = e.detail.role === "admin" ? "" : "none";
 });

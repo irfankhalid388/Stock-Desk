@@ -75,8 +75,8 @@ const total = subtotal - discount + tax;
       await conn.query(
         `INSERT INTO invoice_items
           (invoice_id, product_id, quantity, unit_price,cost_price,line_total)
-         VALUES (?, ?, ?, ?, ?)`,
-        [invoiceid, item.productid, item.quantity, item.unitprice,item.cost_price,item.linetotal]
+         VALUES (?, ?, ?, ?, ?,?)`,
+        [invoiceid, item.productid, item.quantity, item.unitprice,item.costprice,item.linetotal]
       );
 
     const decremented=  await decrementstock(conn, item.productid, item.quantity);
@@ -184,7 +184,7 @@ const sql=`SELECT i.*,
 async function list({page=1,limit=10,search='',status=''}){
 const offset=(page-1)*limit
 const like=`%${search}%`
-const condition=`where 1=1`
+let condition=`where 1=1`
 const param=[]
 if(search){
   condition += ` AND (i.invoice_no LIKE ? OR c.name LIKE ?)`

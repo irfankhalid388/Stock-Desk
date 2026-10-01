@@ -3,6 +3,7 @@ let currentUserRole = null;
 let debounceTimer;
 let currentAdjustProductId = null;
 
+const messageEl = document.getElementById("message");
 const adjustStockPanel = document.getElementById("adjustStockPanel");
 const adjustProductName = document.getElementById("adjustProductName");
 const adjustMessage = document.getElementById("adjustMessage");
@@ -16,12 +17,11 @@ const searchInput = document.getElementById("searchInput");
 const prevBtn = document.getElementById("prevPage");
 const nextBtn = document.getElementById("nextPage");
 
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+function showMessage(msg) {
+  if (messageEl) messageEl.textContent = msg;
 }
 
+// RENDER ROWS ///////////////////////////////////////////////////////
 function renderProductRows(products) {
   const tbody = document.getElementById("productTableBody");
   if (!tbody) return;
@@ -57,6 +57,7 @@ function renderProductRows(products) {
     .join("");
 }
 
+// TABLE CLICKS: stock adjust panel + delete //////////////////////////
 const productTableBody = document.getElementById("productTableBody");
 
 if (productTableBody) {
@@ -74,19 +75,33 @@ if (productTableBody) {
 
     if (!e.target.classList.contains("delete-btn")) return;
 
-    const id = e.target.dataset.id;
+    const btn = e.target;
+    const id = btn.dataset.id;
     if (!confirm("Delete this product? This cannot be undone.")) return;
 
-    const res = await request("DELETE", `/api/products/${id}`);
+    showMessage("");
+    btn.disabled = true;
 
-    if (!res.ok) {
-      console.error("Failed to delete product", res.status);
-      return;
+    try {
+      const res = await request("DELETE", `/api/products/${id}`);
+
+      if (!res.ok) {
+        showMessage(messageFor(res.status, await readJson(res)));
+        btn.disabled = false;
+        return;
+      }
+
+      // success: table dobara render hoga, button khud gayab ho jayega
+      await loadProducts(currentPage, searchInput ? searchInput.value : "");
+    } catch (err) {
+      console.error(err);
+      showMessage("Could not reach the server. Please try again.");
+      btn.disabled = false;
     }
-    loadProducts(currentPage, searchInput ? searchInput.value : "");
   });
 }
 
+// STOCK ADJUST //////////////////////////////////////////////////////
 if (cancelAdjustBtn) {
   cancelAdjustBtn.addEventListener("click", () => {
     adjustStockPanel.style.display = "none";
@@ -97,6 +112,11 @@ if (cancelAdjustBtn) {
 if (submitAdjustBtn) {
   submitAdjustBtn.addEventListener("click", async () => {
     adjustMessage.textContent = "";
+
+    if (!currentAdjustProductId) {
+      adjustMessage.textContent = "No product selected. Please close this panel and try again.";
+      return;
+    }
 
     const change_qty = parseInt(changeQtyInput.value);
     const reason = adjustReasonSelect.value;
@@ -111,6 +131,7 @@ if (submitAdjustBtn) {
       return;
     }
 
+    submitAdjustBtn.disabled = true;
     try {
       const res = await request("POST", `/api/products/${currentAdjustProductId}/adjust`, {
         change_qty,
@@ -118,28 +139,29 @@ if (submitAdjustBtn) {
         note,
       });
 
-      if (res.status === 422) {
-  const data = await res.json().catch(() => ({}));
-  adjustMessage.textContent = data.errors
-    ? Object.values(data.errors).join(". ")
-    : data.error || "Could not adjust stock.";
-  return;
-}
-
-      if (!res.ok) {
-        adjustMessage.textContent = "Something went wrong. Please try again.";
+      if (res.ok) {
+        adjustStockPanel.style.display = "none";
+        currentAdjustProductId = null;
+        loadProducts(currentPage, searchInput ? searchInput.value : "");
         return;
       }
 
-      adjustStockPanel.style.display = "none";
-      currentAdjustProductId = null;
-      loadProducts(currentPage, searchInput ? searchInput.value : "");
+      const data = await readJson(res);
+      if (res.status === 422 && data.errors) {
+        adjustMessage.textContent = [...new Set(Object.values(data.errors))].join(". ");
+      } else {
+        adjustMessage.textContent = messageFor(res.status, data);
+      }
     } catch (err) {
-      adjustMessage.textContent = "Something went wrong. Please try again.";
+      console.error(err);
+      adjustMessage.textContent = "Could not reach the server. Please try again.";
+    } finally {
+      submitAdjustBtn.disabled = false;
     }
   });
 }
 
+// PAGINATION + LOAD /////////////////////////////////////////////////
 function updatePaginationControls(page, pages) {
   currentPage = page;
   document.getElementById("pageInfo").textContent = `Page ${page} of ${pages}`;
@@ -148,16 +170,28 @@ function updatePaginationControls(page, pages) {
 }
 
 async function loadProducts(page, search) {
-  const res = await request(
-    "GET",
-    `/api/products?search=${encodeURIComponent(search)}&page=${page}`
-  );
-  const data = await res.json();
+  try {
+    const res = await request(
+      "GET",
+      `/api/products?search=${encodeURIComponent(search)}&page=${page}`
+    );
 
-  renderProductRows(data.rows);
-  updatePaginationControls(data.page, data.pages);
+    if (!res.ok) {
+      showMessage(messageFor(res.status, await readJson(res)));
+      return;
+    }
+
+    showMessage("");
+    const data = await res.json();
+    renderProductRows(data.rows);
+    updatePaginationControls(data.page, data.pages);
+  } catch (err) {
+    console.error(err);
+    showMessage("Could not load products. Please try again.");
+  }
 }
 
+// SEARCH + PAGER ////////////////////////////////////////////////////
 if (searchInput) {
   searchInput.addEventListener("input", () => {
     clearTimeout(debounceTimer);
@@ -179,6 +213,7 @@ if (nextBtn) {
   });
 }
 
+// ROLE ///////////////////////////////////////////////////////////////
 document.addEventListener("userRoleLoaded", function (e) {
   currentUserRole = e.detail.role;
   if (e.detail.role === "admin") {
@@ -188,4 +223,5 @@ document.addEventListener("userRoleLoaded", function (e) {
     if (costPriceHeader) costPriceHeader.style.display = "";
   }
 });
+
 window.authReady.then(() => loadProducts(1, ""));

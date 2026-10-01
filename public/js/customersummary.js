@@ -1,18 +1,14 @@
+let latestsearch=0
 const summary = document.getElementById("summarySearch");
 const results = document.getElementById("summaryResults");
 const summarymessage = document.getElementById("summaryMessage");
 const summarydetail = document.getElementById("summaryDetail");
 let debounceTimer;
 
-// ESCAPE HTML ///////////////////////////////////////////////////////////////
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
 
 // SEARCH INPUT ////////////////////////////////////
 async function search(term) {
+  const mine = ++latestsearch
   summarymessage.textContent = "";
   summarydetail.style.display = "none";
 
@@ -25,6 +21,7 @@ async function search(term) {
       "GET",
       `/api/customers?search=${encodeURIComponent(term)}&page=1&limit=10`
     );
+    if(mine!==latestsearch)return
     if (!res.ok) {
       results.innerHTML = "";
       summarymessage.textContent = "Could not search customers.";
@@ -51,8 +48,13 @@ function renderResults(rows) {
   ).join("<br>");
 
   results.querySelectorAll(".pick-customer").forEach((btn) => {
-    btn.addEventListener("click", () => loadSummary(btn.dataset.id));
+  btn.addEventListener("click", () => {
+    const picked = rows.find((c) => String(c.id) === btn.dataset.id);
+    if (picked) summary.value = picked.name;   // show chosen name in the box
+    results.innerHTML = "";                    // close the list
+    loadSummary(btn.dataset.id);
   });
+});
 }
 
 // LOAD SUMMARY — put data in summary //////////////////////////////////////////////////////////

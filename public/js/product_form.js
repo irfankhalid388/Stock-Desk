@@ -1,4 +1,5 @@
 const form = document.getElementById("productForm");
+
 function getFormPayload() {
   return {
     sku: document.getElementById("sku").value.trim(),
@@ -10,34 +11,44 @@ function getFormPayload() {
     reorder_level: document.getElementById("reorder_level").value,
   };
 }
+
 if (form) {
+  const submitBtn = form.querySelector("button[type='submit']");
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearFieldErrors();
-
-    const payload = getFormPayload();
 
     const productId = document.getElementById("productId").value;
     const isEditMode = Boolean(productId);
     const method = isEditMode ? "PUT" : "POST";
     const url = isEditMode ? `/api/products/${productId}` : "/api/products";
-    const formError = document.getElementById("formError");
-    const res = await request(method, url, payload);
-    if (res.status === 422) {
-  const data = await res.json().catch(() => ({}));
-  const leftover = showFieldErrors(data.errors);
-  if (leftover.length && formError) formError.textContent = leftover.join(". ");
-  return;
-}
-if (res.status === 409) {
-  showFieldErrors({ sku: "This SKU already exists" });
-  return;
-}
-if (!res.ok) {
-  const data = await res.json().catch(() => ({}));
-  if (formError) formError.textContent = data.message || "Something went wrong. Please try again.";
-  return;
-}
-window.location.href = "/products";
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      const res = await request(method, url, getFormPayload());
+
+      if (res.ok) {
+        window.location.href = "/products";
+        return;
+      }
+
+      const data = await readJson(res);
+
+      if (res.status === 422) {
+        const leftover = showFieldErrors(data.errors);
+        if (leftover.length) setFormError(leftover.join(". "));
+      } else if (res.status === 409) {
+        showFieldErrors({ sku: "This SKU already exists" });
+      } else {
+        setFormError(messageFor(res.status, data));
+      }
+    } catch (err) {
+      console.error(err);
+      setFormError("Could not reach the server. Please try again.");
+    }
+
+    if (submitBtn) submitBtn.disabled = false;
   });
 }

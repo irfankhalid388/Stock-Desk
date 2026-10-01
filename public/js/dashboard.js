@@ -1,10 +1,11 @@
 function money(n) {
-  return "Rs " + Number(n).toLocaleString("en-US");
+  return "Rs " + Number(n || 0).toLocaleString("en-US");
 }
 
 function renderCounts(counts) {
+  const c = counts || {};
   document.querySelectorAll("[data-count]").forEach((el) => {
-    el.textContent = counts[el.dataset.count] ?? 0;
+    el.textContent = c[el.dataset.count] ?? 0;
   });
 }
 
@@ -21,35 +22,44 @@ function renderTopProducts(list) {
   box.textContent = "";
   document.getElementById("topSection").hidden = false;
 
-  if (list.length === 0) {
+  if (!Array.isArray(list) || list.length === 0) {
     document.getElementById("topEmpty").hidden = false;
     return;
   }
 
   list.forEach((p) => {
     const li = document.createElement("li");
-      li.textContent = p.name + " - " + p.units_sold + " units (" + money(p.revenue) + ")";
+    li.textContent = p.name + " - " + p.units_sold + " units (" + money(p.revenue) + ")";
     box.appendChild(li);
   });
 }
 
 async function loadDashboard() {
-  const res = await request("GET", "/api/dashboard");
+  const errorEl = document.getElementById("dashError");
 
-  if (res.status === 401) {
-    window.location.href = "/login";
-    return;
-  }
-  if (!res.ok) {
-    document.getElementById("dashError").hidden = false;
-    return;
-  }
+  try {
+    const res = await request("GET", "/api/dashboard");
 
-  const data = await res.json();
-  renderCounts(data.counts);
-  // backend ne sales/top_products sirf admin ko bheje hain, isliye yahan role check ki zaroorat nahi
-  if (data.sales) renderSales(data.sales);
-  if (data.top_products) renderTopProducts(data.top_products);
+    if (res.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+    if (!res.ok) {
+      if (errorEl) errorEl.hidden = false;
+      return;
+    }
+
+    if (errorEl) errorEl.hidden = true;
+
+    const data = await res.json();
+    renderCounts(data.counts);
+    // backend ne sales/top_products sirf admin ko bheje hain, isliye yahan role check ki zaroorat nahi
+    if (data.sales) renderSales(data.sales);
+    if (data.top_products) renderTopProducts(data.top_products);
+  } catch (err) {
+    console.error(err);
+    if (errorEl) errorEl.hidden = false;
+  }
 }
 
 window.authReady.then(loadDashboard);

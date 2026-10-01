@@ -11,8 +11,10 @@
   <input type="text" id="name" value="<%= product ? product.name : '' %>">
   <span id="err-name"></span>
 
-  <label for="category_id">Category ID</label>
-  <input type="number" id="category_id" value="<%= product ? product.category_id : '' %>">
+  <label for="categorySearch">Category</label>
+  <input type="text" id="categorySearch" placeholder="Search category..." autocomplete="off">
+  <input type="hidden" id="category_id" value="<%= product ? product.category_id : '' %>">
+  <div id="categoryResults"></div>
   <span id="err-category_id"></span>
 
   <label for="cost_price">Cost Price</label>
@@ -35,5 +37,5 @@
   <div id="formError" style="color: red;"></div>
 </form>
 
-
+<script src="/js/category_combo.js"></script>
 <script src="/js/product_form.js"></script>

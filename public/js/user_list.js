@@ -1,17 +1,18 @@
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+const messageEl = document.getElementById("message");
+const userRowsEl = document.getElementById("userRows");
+
+function showMessage(msg) {
+  if (messageEl) messageEl.textContent = msg;
 }
 
 function renderUserRows(users, currentUserId) {
-  const tbody = document.getElementById("userRows");
+  if (!userRowsEl) return;
   if (!users.length) {
-    tbody.innerHTML = `<tr><td colspan="5">No users found.</td></tr>`;
+    userRowsEl.innerHTML = `<tr><td colspan="5">No users found.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = users
+  userRowsEl.innerHTML = users
     .map((u) => {
       const status = u.is_active ? "Active" : "Deactivated";
       const canDeactivate = u.is_active && u.id !== currentUserId;
@@ -30,38 +31,67 @@ function renderUserRows(users, currentUserId) {
 }
 
 async function loadUsers(currentUserId) {
-  const messageEl = document.getElementById("message");
+  showMessage("");
   try {
     const res = await request("GET", "/api/users");
     if (!res.ok) {
-      messageEl.textContent = res.status === 403 ? "You do not have permission to view this." : "Could not load users.";
+      showMessage(
+        res.status === 403
+          ? "You do not have permission to view this."
+          : messageFor(res.status, await readJson(res))
+      );
       return;
     }
     const data = await res.json();
+    showMessage("")
     renderUserRows(data.users || [], currentUserId);
   } catch (err) {
-    messageEl.textContent = "Something went wrong. Please try again.";
+    console.error(err);
+    showMessage("Could not load users. Please try again.");
   }
 }
 
-document.getElementById("userRows").addEventListener("click", async (e) => {
-  if (!e.target.classList.contains("deactivate-btn")) return;
+if (userRowsEl) {
+  userRowsEl.addEventListener("click", async (e) => {
+    if (!e.target.classList.contains("deactivate-btn")) return;
 
-  const id = e.target.dataset.id;
-  const name = e.target.dataset.name;
-  if (!confirm(`Deactivate ${name}? They will no longer be able to log in.`)) return;
+    const btn = e.target;
+    const id = btn.dataset.id;
+    const name = btn.dataset.name;
+    if (!confirm(`Deactivate ${name}? They will no longer be able to log in.`)) return;
 
-  const res = await request("PATCH", `/api/users/${id}/deactivate`);
-  if (!res.ok) {
-    document.getElementById("message").textContent = "Could not deactivate user.";
-    return;
-  }
-  window.currentUserId ? loadUsers(window.currentUserId) : location.reload();
-});
+    showMessage("");
+    btn.disabled = true;
+
+    try {
+      const res = await request("PATCH", `/api/users/${id}/deactivate`);
+      if (!res.ok) {
+        showMessage(messageFor(res.status, await readJson(res)));
+        btn.disabled = false;
+        return;
+      }
+      if (window.currentUserId) await loadUsers(window.currentUserId);
+      else location.reload();
+    } catch (err) {
+      console.error(err);
+      showMessage("Could not reach the server. Please try again.");
+      btn.disabled = false;
+    }
+  });
+}
+let started=false
 
 document.addEventListener("userRoleLoaded", function (e) {
+  started=true
   window.currentUserId = e.detail.id;
   const addLink = document.getElementById("addUserLink");
   if (addLink) addLink.style.display = e.detail.role === "admin" ? "" : "none";
   loadUsers(e.detail.id);
+});
+
+// agar session refresh hi fail ho gaya to userRoleLoaded kabhi fire nahi hoga
+window.authReady.then(() => {
+  if (!window.currentUserId && messageEl && !messageEl.textContent) {
+    messageEl.textContent = "Could not verify your session. Please log in again.";
+  }
 });

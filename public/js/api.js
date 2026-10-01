@@ -1,10 +1,13 @@
+// ///////////global variables
 let accesstoken = null;
 let refreshPromise = null;
-// access token///////////////////////////////////////////////////////////
+
+// updating access token ///////////////////////////////////////////////////////////
 function setAccessToken(token) {
   accesstoken = token;
 }
-// refreshing/////////////////////////////////////////////////////////////
+
+// refreshing /////////////////////////////////////////////////////////////
 async function doRefresh() {
   if (refreshPromise) {
     return refreshPromise;
@@ -26,17 +29,50 @@ async function doRefresh() {
       setAccessToken(null);
       return false;
     } finally {
-      refreshPromise = null;
+      // current refresh operation is ended in future we can do again refresh
+      refreshPromise = null;  
+      
     }
   })();
 
   return refreshPromise;
 }
-
+// this checks the route is authentication related or not 
 function isAuthRoute(url) {
   return url.startsWith("/api/auth/");
 }
-// for feild erros/////////////////////////////////////////////////
+
+// shared helpers (sab page scripts yahin se use karengi) //////////////////
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// agar json na mila kali object return kro
+function readJson(res) {
+  return res.json().catch(() => ({}));
+}
+// error handling
+function messageFor(status, data) {
+  if (data && data.message) return data.message;
+  if (status === 403) return "You do not have permission to do this.";
+  if (status === 404) return "Not found.";
+  if (status === 409) return "This record already exists.";
+  if (status === 429) return "Too many attempts. Please wait a minute and try again.";
+  if (status >= 500) return "Server error. Please try again.";
+  return "Something went wrong. Please try again.";
+}
+
+function setFormError(msg) {
+  const el = document.getElementById("formError");
+  if (el) el.textContent = msg;
+}
+
+// field errors ///////////////////////////////////////////////////////////
 function clearFieldErrors() {
   document.querySelectorAll("[id^='err-']").forEach((s) => (s.textContent = ""));
   const fe = document.getElementById("formError");
@@ -53,9 +89,9 @@ function showFieldErrors(errors) {
   return leftover;
 }
 
-// ///////////////////////////////////////////request used in other js
+// request used in other js ///////////////////////////////////////////////
 async function request(method, url, body) {
-    if (window.authReady && !isAuthRoute(url)) {           // this whole block is new — old version started straight at "const headers = ..."
+  if (window.authReady && !isAuthRoute(url)) {
     await window.authReady;
   }
   const headers = { "Content-Type": "application/json" };
@@ -80,35 +116,38 @@ async function request(method, url, body) {
         credentials: "include",
         body: body ? JSON.stringify(body) : undefined
       });
-    }
-    else{
-      window.location.href="/login"
+    } else {
+      window.location.href = "/login";
     }
   }
 
   return res;
 }
-//////////////////////////////////// load user get logged in user role
+
+// load user: logged in user ka role //////////////////////////////////////
 async function loadUserRole() {
   const res = await request("GET", "/api/auth/me");
-  if (!res.ok) return;
+  if (!res.ok) {
+    console.error("Could not load user", res.status);
+    const box = document.getElementById("message");
+    if (box) box.textContent = "Could not load your account. Please refresh the page.";
+    return;
+  }
 
   const user = await res.json();
 
   if (user.role === "admin") {
     const reportsLink = document.getElementById("reportsLink");
     if (reportsLink) reportsLink.style.display = "";
-// /////////////////////////////////////////////////////users
-  const usersLink = document.getElementById("usersLink");
-  if (usersLink) usersLink.style.display = "";
 
-    
+    const usersLink = document.getElementById("usersLink");
+    if (usersLink) usersLink.style.display = "";
   }
-
 
   document.dispatchEvent(new CustomEvent("userRoleLoaded", { detail: user }));
 }
-// init auth///////////////////////////////////////////////
+
+// init auth //////////////////////////////////////////////////////////////
 async function initAuth() {
   try {
     const refreshed = await doRefresh();
@@ -119,15 +158,21 @@ async function initAuth() {
     console.error("Failed to refresh session", err);
   }
 }
-// logout button ///////////////////////////////////////////////////////////////
+
+// logout button //////////////////////////////////////////////////////////
 document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logout");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
-      await request("POST", "/api/auth/logout");
+      try {
+        await request("POST", "/api/auth/logout");
+      } catch (err) {
+        console.error("Logout request failed", err);
+      }
       setAccessToken(null);
       window.location.href = "/login";
     });
   }
 });
+
 window.authReady = initAuth();

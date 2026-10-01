@@ -14,6 +14,6 @@ router.use("/invoices", invoiceRoutes);
 router.use("/reports", reportRoutes);
 router.use("/customers",customerroutes)
 router.use("/users",userroutes)
-router.use("/category",categoryRoutes)
+router.use("/categories",categoryRoutes)
 router.use("/dashboard",dashboardroutes)
 module.exports = router

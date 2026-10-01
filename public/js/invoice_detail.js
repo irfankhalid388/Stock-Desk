@@ -1,15 +1,10 @@
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-// get id//////////////////////////
+// get id //////////////////////////
 function getInvoiceIdFromUrl() {
-  const parts = window.location.pathname.split("/");
+  const parts = window.location.pathname.split("/").filter(Boolean);
   return parts[parts.length - 1];
 }
 
-// cancle invoice button///////////////////////////////////
+// cancel invoice button ///////////////////////////////////
 function updateCancelButtonVisibility() {
   const cancelBtn = document.getElementById("cancelInvoiceBtn");
   if (!cancelBtn || !window.currentUserRole) return;
@@ -19,35 +14,42 @@ function updateCancelButtonVisibility() {
 
   cancelBtn.style.display = canCancelRole && notCancelled ? "" : "none";
 }
-// load invoice////////////////////////////////////
+
+// load invoice ////////////////////////////////////
 async function loadInvoice() {
   const id = getInvoiceIdFromUrl();
   const messageEl = document.getElementById("message");
   const infoEl = document.getElementById("invoiceInfo");
   const itemRowsEl = document.getElementById("itemRows");
 
+  messageEl.textContent = "";
+
   try {
     const res = await request("GET", `/api/invoices/${encodeURIComponent(id)}`);
 
     if (!res.ok) {
-      messageEl.textContent = res.status === 404 ? "Invoice not found." : "Could not load invoice.";
+      messageEl.textContent =
+        res.status === 404
+          ? "Invoice not found."
+          : messageFor(res.status, await readJson(res));
       return;
     }
 
     const data = await res.json();
     window.currentInvoiceStatus = data.status;
-updateCancelButtonVisibility();
+    updateCancelButtonVisibility();
 
     infoEl.innerHTML = `
       <p><strong>Invoice No:</strong> ${escapeHtml(data.invoice_no)}</p>
       <p><strong>Customer:</strong> ${escapeHtml(data.customer_name || "")} (${escapeHtml(data.customer_email || "")})</p>
       <p><strong>Created By:</strong> ${escapeHtml(data.created_by_name || "")}</p>
       <p><strong>Status:</strong> ${escapeHtml(data.status)}</p>
-      <p><strong>Subtotal:</strong> ${data.subtotal}</p>
-      <p><strong>Discount:</strong> ${data.discount}</p>
-      <p><strong>Tax:</strong> ${data.tax}</p>
-      <p><strong>Total:</strong> ${data.total}</p>
+      <p><strong>Subtotal:</strong> ${escapeHtml(data.subtotal)}</p>
+      <p><strong>Discount:</strong> ${escapeHtml(data.discount)}</p>
+      <p><strong>Tax:</strong> ${escapeHtml(data.tax)}</p>
+      <p><strong>Total:</strong> ${escapeHtml(data.total)}</p>
     `;
+
     const markPaidBtn = document.getElementById("markPaidBtn");
     if (markPaidBtn) markPaidBtn.style.display = data.status === "unpaid" ? "" : "none";
 
@@ -61,48 +63,65 @@ updateCancelButtonVisibility();
         (item) => `<tr>
           <td>${escapeHtml(item.product_name || "")}</td>
           <td>${escapeHtml(item.sku || "")}</td>
-          <td>${item.quantity}</td>
-          <td>${item.unit_price}</td>
-          <td>${item.line_total}</td>
+          <td>${escapeHtml(item.quantity)}</td>
+          <td>${escapeHtml(item.unit_price)}</td>
+          <td>${escapeHtml(item.line_total)}</td>
         </tr>`
       )
       .join("");
   } catch (err) {
-    messageEl.textContent = "Something went wrong. Please try again.";
+    console.error(err);
+    messageEl.textContent = "Could not load invoice. Please try again.";
   }
 }
+
+// cancel ////////////////////////////////////////////////////
 async function cancelInvoice() {
   const id = getInvoiceIdFromUrl();
   const messageEl = document.getElementById("message");
+  const btn = document.getElementById("cancelInvoiceBtn");
   if (!confirm("Cancel this invoice? Stock will be restored.")) return;
+
+  messageEl.textContent = "";
+  if (btn) btn.disabled = true;
 
   try {
     const res = await request("PUT", `/api/invoices/${encodeURIComponent(id)}/status`);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      messageEl.textContent = data.message || "Could not cancel invoice.";
+      messageEl.textContent = messageFor(res.status, await readJson(res));
       return;
     }
-    loadInvoice();
+    await loadInvoice();
   } catch (err) {
-    messageEl.textContent = "Something went wrong. Please try again.";
+    console.error(err);
+    messageEl.textContent = "Could not reach the server. Please try again.";
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
+
+// mark paid /////////////////////////////////////////////////
 async function markInvoicePaid() {
   const id = getInvoiceIdFromUrl();
   const messageEl = document.getElementById("message");
+  const btn = document.getElementById("markPaidBtn");
   if (!confirm("Mark this invoice as paid?")) return;
+
+  messageEl.textContent = "";
+  if (btn) btn.disabled = true;
 
   try {
     const res = await request("PUT", `/api/invoices/${encodeURIComponent(id)}/pay`);
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      messageEl.textContent = data.message|| data.error || "Could not mark invoice as paid.";
+      messageEl.textContent = messageFor(res.status, await readJson(res));
       return;
     }
-    loadInvoice();
+    await loadInvoice();
   } catch (err) {
-    messageEl.textContent = "Something went wrong. Please try again.";
+    console.error(err);
+    messageEl.textContent = "Could not reach the server. Please try again.";
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -112,9 +131,9 @@ if (cancelBtn) cancelBtn.addEventListener("click", cancelInvoice);
 const markPaidBtn = document.getElementById("markPaidBtn");
 if (markPaidBtn) markPaidBtn.addEventListener("click", markInvoicePaid);
 
-
 document.addEventListener("userRoleLoaded", function (e) {
   window.currentUserRole = e.detail.role;
   updateCancelButtonVisibility();
 });
+
 window.authReady.then(loadInvoice);

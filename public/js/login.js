@@ -21,14 +21,21 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       return;
     }
 
+    const data = await res.json().catch(() => ({}));
+
     if (res.status === 422) {
-      const data = await res.json().catch(() => ({}));
-      errorMsg.textContent = Object.values(data.errors || {}).join(". ") || "Login failed";
+      errorMsg.textContent = Object.values(data.errors || {}).join(". ") || "Please check your details.";
+    } else if (res.status === 401) {
+      errorMsg.textContent = "Incorrect email or password.";
+    } else if (res.status === 403) {
+      errorMsg.textContent = data.message || "This account cannot log in. Please contact an admin.";
+    } else if (res.status === 429) {
+      errorMsg.textContent = "Too many attempts. Please wait a minute and try again.";
     } else {
-      errorMsg.textContent =
-        res.status === 429 ? "Too many attempts. Please wait a minute and try again." : "Login failed";
+      errorMsg.textContent = messageFor(res.status, data);
     }
   } catch (err) {
+    console.error(err);
     errorMsg.textContent = "Could not reach the server. Please try again.";
   }
   if (submitbtn) submitbtn.disabled = false;

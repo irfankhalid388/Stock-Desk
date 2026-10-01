@@ -1,9 +1,3 @@
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-
 function money(value) {
   return Number(value || 0).toFixed(2);
 }
@@ -32,7 +26,7 @@ function renderTopProducts(rows) {
     .map(
       (p) => `<tr>
         <td>${escapeHtml(p.name)}</td>
-        <td>${p.units_sold}</td>
+        <td>${escapeHtml(p.units_sold)}</td>
         <td>${money(p.revenue)}</td>
       </tr>`
     )
@@ -49,7 +43,7 @@ function renderStaffRows(rows) {
     .map(
       (u) => `<tr>
         <td>${escapeHtml(u.user_name)}</td>
-        <td>${u.invoice_count}</td>
+        <td>${escapeHtml(u.invoice_count)}</td>
         <td>${money(u.revenue)}</td>
       </tr>`
     )
@@ -57,27 +51,40 @@ function renderStaffRows(rows) {
 }
 
 async function loadSummary(from, to) {
-  const res = await request("GET", `/api/reports/summary?from=${from}&to=${to}`);
-  if (!res.ok) return false;
+  const res = await request(
+    "GET",
+    `/api/reports/summary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+  );
+  if (!res.ok) {
+    return { ok: false, message: messageFor(res.status, await readJson(res)) };
+  }
   const data = await res.json();
 
   document.getElementById("sumRevenue").textContent = money(data.revenue);
   document.getElementById("sumCost").textContent = money(data.cost);
   document.getElementById("sumProfit").textContent = money(data.profit);
-  document.getElementById("sumInvoiceCount").textContent = data.invoice_count;
-  renderTopProducts(data.top_products || []);
-  return true;
+  document.getElementById("sumInvoiceCount").textContent = data.invoice_count ?? 0;
+  renderTopProducts(Array.isArray(data.top_products) ? data.top_products : []);
+  return { ok: true };
 }
 
 async function loadStaffSales(from, to) {
-  const res = await request("GET", `/api/reports/sales_per_staff?from=${from}&to=${to}`);
-  if (!res.ok) return;
+  const res = await request(
+    "GET",
+    `/api/reports/sales_per_staff?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+  );
+  // sales_per_staff admin-only hai: 403 ka matlab sirf ye ke account staff ka hai
+  if (res.status === 403) return;
+  if (!res.ok) throw new Error(`staff sales failed: ${res.status}`);
   const data = await res.json();
-  renderStaffRows(data || []);
+  renderStaffRows(Array.isArray(data) ? data : []);
 }
 
 async function loadReports() {
   const messageEl = document.getElementById("message");
+  const applyBtn = document.getElementById("applyRange");
+  messageEl.textContent = "";
+
   const from = document.getElementById("fromDate").value || defaultFrom();
   const to = document.getElementById("toDate").value || defaultTo();
 
@@ -88,18 +95,20 @@ async function loadReports() {
     return;
   }
 
+  if (applyBtn) applyBtn.disabled = true;
   try {
-    const summaryOk = await loadSummary(from, to);
-    if (!summaryOk) {
-      messageEl.textContent = "Could not load report summary.";
+    const summary = await loadSummary(from, to);
+    if (!summary.ok) {
+      messageEl.textContent = summary.message;
       return;
     }
 
-    // sales_per_staff is admin-only server-side; a 403 here just means
-    // this account is staff, so silently leave that table as-is.
     await loadStaffSales(from, to);
   } catch (err) {
-    messageEl.textContent = "Something went wrong. Please try again.";
+    console.error(err);
+    messageEl.textContent = "Could not load reports. Please try again.";
+  } finally {
+    if (applyBtn) applyBtn.disabled = false;
   }
 }
 

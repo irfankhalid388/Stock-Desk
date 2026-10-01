@@ -1,83 +1,60 @@
 const form = document.getElementById("userForm");
-const submitBtn = form.querySelector("button[type='submit']");
 
-function clearErrors() {
-  document.querySelectorAll("[id^='err-']").forEach((span) => {
-    span.textContent = "";
-  });
-  const formError = document.getElementById("formError");
-  if (formError) formError.textContent = "";
-}
+if (form) {
+  const submitBtn = form.querySelector("button[type='submit']");
 
-function showErrors(errors) {
-  Object.keys(errors).forEach((field) => {
-    const span = document.getElementById(`err-${field}`);
-    if (span) span.textContent = errors[field];
-  });
-}
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearFieldErrors();
 
-function showFormError(message) {
-  const formError = document.getElementById("formError");
-  if (formError) formError.textContent = message;
-}
+    const userId = document.getElementById("userId").value;
+    const isEditMode = Boolean(userId);
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  clearErrors();
+    const payload = isEditMode
+      ? {
+          name: document.getElementById("name").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          role: document.getElementById("role").value,
+        }
+      : {
+          name: document.getElementById("name").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          password: document.getElementById("password").value,
+        };
 
-  const userId = document.getElementById("userId").value;
-  const isEditMode = Boolean(userId);
+    const method = isEditMode ? "PUT" : "POST";
+    const url = isEditMode ? `/api/users/${userId}` : "/api/users";
 
-  const payload = isEditMode
-    ? {
-        name: document.getElementById("name").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        role: document.getElementById("role").value,
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      const res = await request(method, url, payload);
+
+      if (res.ok) {
+        window.location.href = "/users?saved=1";
+        return;
       }
-    : {
-        name: document.getElementById("name").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        password: document.getElementById("password").value,
-      };
 
-  const method = isEditMode ? "PUT" : "POST";
-  const url = isEditMode ? `/api/users/${userId}` : "/api/users";
+      const data = await readJson(res);
 
-  if (submitBtn) submitBtn.disabled = true;
-
-  try {
-    const res = await request(method, url, payload);
-
-    if (res.status === 422) {
-      const data = await res.json().catch(() => ({}));
-      if (data.errors) {
-        showErrors(data.errors);
+      if (res.status === 422) {
+        if (data.errors) {
+          const leftover = showFieldErrors(data.errors);
+          if (leftover.length) setFormError(leftover.join(". "));
+        } else {
+          setFormError("Please check the form and try again.");
+        }
+      } else if (res.status === 409) {
+        const leftover = showFieldErrors({ email: "A user with this email already exists." });
+        if (leftover.length) setFormError(leftover[0]);
       } else {
-        showFormError("Please check the form and try again.");
+        setFormError(messageFor(res.status, data));
       }
-      return;
+    } catch (err) {
+      console.error(err);
+      setFormError("Could not reach the server. Please try again.");
     }
 
-    if (res.status === 409) {
-      showFormError("A user with this email already exists.");
-      return;
-    }
-
-    if (res.status === 403) {
-      showFormError("You do not have permission to do this.");
-      return;
-    }
-
-    if (!res.ok) {
-      showFormError("Something went wrong. Please try again.");
-      return;
-    }
-
-    window.location.href = "/users?saved=1";
-  } catch (err) {
-    console.error(err);
-    showFormError("Could not reach the server. Please try again.");
-  } finally {
     if (submitBtn) submitBtn.disabled = false;
-  }
-});
+  });
+}
