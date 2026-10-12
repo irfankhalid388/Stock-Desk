@@ -158,8 +158,18 @@ function profilePage(req, res) {
     view: "profiles/profiles",
   })
 }
+
+
+
+function stockMovementsPage(req, res) {
+  res.render("layouts/main", {
+    title: "Stock Movements",
+    view: "stockmovements/list",
+  })
+}
 module.exports = {
   profilePage,
+  stockMovementsPage,
   notFound,
   reportsPage,
   productsList,

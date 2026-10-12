@@ -29,4 +29,6 @@ router.get("/forgot-password", pageController.forgotPage)
 router.get("/reset-password", pageController.resetPage)
 // profile/////////////////////////////////////////////////
 router.get("/profile", pageController.profilePage)
+// stock movements/////////////////////////////
+router.get("/stock-movements", pageController.stockMovementsPage)
 module.exports = router;

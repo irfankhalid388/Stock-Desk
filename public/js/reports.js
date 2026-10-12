@@ -111,6 +111,13 @@ async function loadReports() {
     if (applyBtn) applyBtn.disabled = false;
   }
 }
+const stockMovementsBtn = document.getElementById("stockMovementsBtn")
+
+if (stockMovementsBtn) {
+  stockMovementsBtn.addEventListener("click", () => {
+    window.location.href = "/stock-movements"
+  })
+}
 
 document.getElementById("applyRange").addEventListener("click", loadReports);
 

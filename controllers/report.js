@@ -1,6 +1,6 @@
 const reportModel = require("../models/reportmodel");
 const productModel = require("../models/productmodel");
-
+const stockmovementModel = require("../models/stockmovementmodel")
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 function isRealDate(s) {
   if (!DATE_RE.test(s)) return false;
@@ -65,5 +65,14 @@ async function getlowstock(req, res, next) {
     next(err);
   }
 }
+// stock movements////////////////////////////////////
+async function stockMovements(req, res, next) {
+  try {
+    const rows = await stockmovementModel.showmovements()
+    res.json({ rows })
+  } catch (err) {
+    next(err)
+  }
+}
 
-module.exports = { summary, getlowstock, gettopemployees };
+module.exports = { summary, getlowstock, gettopemployees ,stockMovements};
