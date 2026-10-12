@@ -40,13 +40,13 @@ return rows
 
 // //////////////////////////FINDREFRESHTOKEN//////////////////////////////////
 async function  findRefreshToken(tokenhash){
-const sql=`SELECT * FROM refresh_tokens WHERE token_hash = ? `
+const sql=`SELECT * FROM refresh_tokens WHERE token_hash = ? AND type='refresh' `
 const rows=await db.query(sql,[tokenhash])
 return rows [0] || null
 }
 // //////////////REVOKEEREFRESHTOKEN/////////////////////////
 async function revokeRefreshToken(id){
-    const sql=`UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = ?`
+    const sql=`UPDATE refresh_tokens SET revoked_at = NOW() WHERE id = ? AND type='refresh'`
     const rows= await db.query(sql,[id])
     return rows.affectedRows > 0
     
@@ -93,6 +93,26 @@ async function updateUser(id, { name, email, role }) {
   const result = await db.query(sql, [name,normalizeEmail(email), role, id]);
   return result.affectedRows > 0;
 }
+// save reset token ////////////////////////////////////////////////////////////
+async function saveresettoken(userId,tokenhash){
+  const sql=`UPDATE refresh_tokens SET revoked_at = NOW()
+     WHERE user_id = ? AND type = 'reset' AND revoked_at IS NULL`
+     const result= await db.query(sql,[userId])
+
+
+     const sql1=`INSERT INTO refresh_tokens (user_id, token_hash, expires_at, type)
+               VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 'reset')`
+               const  result1=await db.query(sql1,[userId,tokenhash])
+return result1.affectedRows>0
+}
+// find reset token /////////////////////////////////////////
+async function findResetToken(tokenHash) {
+  const sql = `SELECT id, user_id FROM refresh_tokens
+               WHERE token_hash = ? AND type = 'reset'
+                 AND revoked_at IS NULL AND expires_at > NOW()`
+  const rows = await db.query(sql, [tokenHash])
+  return rows[0] || null
+}
 // ///////////////////////////////////EXPORTS///////////////////////////////////
 module.exports={
     create,
@@ -107,5 +127,7 @@ module.exports={
     updatepassword,
     findByIdWithPassword,
     getallusers,
-    updateUser
+    updateUser,
+    findResetToken,
+    saveresettoken    
 };

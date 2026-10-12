@@ -109,8 +109,7 @@ const registerRules = [
 
   body('email')
     .trim()
-    .isEmail().withMessage('Must be a valid email')
-    .normalizeEmail(),
+    .isEmail().withMessage('Must be a valid email'),
 
   body('password')
     .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
@@ -125,15 +124,6 @@ const loginRules = [
 
   body('password')
     .notEmpty().withMessage('Password is required')
-];
-const changePasswordRules = [
-  body('currentPassword')
-    .notEmpty().withMessage('Current password is required'),
-
-  body('newPassword')
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
-    .matches(/[A-Z]/).withMessage('Password must contain an uppercase letter')
-    .matches(/[0-9]/).withMessage('Password must contain a number')
 ];
 const invoiceRules = [
   body('customerId')
@@ -186,4 +176,29 @@ const userUpdateRules = [
   body('role')
     .isIn(['admin', 'staff']).withMessage('Role must be admin or staff')
 ];
-module.exports={userUpdateRules,productRules,validate,adjustRules,customerRules,registerRules,loginRules,changePasswordRules,invoiceRules}
+const newPasswordRule = body('newPassword')
+  .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+  .matches(/[A-Z]/).withMessage('Password must contain an uppercase letter')
+  .matches(/[0-9]/).withMessage('Password must contain a number');
+
+const changePasswordRules = [
+  body('currentPassword')
+    .notEmpty().withMessage('Current password is required'),
+  newPasswordRule,
+];
+
+const forgotPasswordRules = [
+  body('email')
+    .isString().withMessage('Email is required')
+    .trim()
+    .isEmail().withMessage('Enter a valid email'),
+];
+
+const resetPasswordRules = [
+  body('token')
+    .isString().withMessage('Invalid or expired link')
+    .notEmpty().withMessage('Invalid or expired link'),
+  newPasswordRule,
+];
+
+module.exports={userUpdateRules,productRules,validate,adjustRules,customerRules,registerRules,loginRules,changePasswordRules,invoiceRules,newPasswordRule,forgotPasswordRules,resetPasswordRules}

@@ -24,4 +24,7 @@ router.get("/users/new", pageController.userForm);
 router.get("/users/:id/edit", pageController.userForm);
 // reports/////////////////////////////////////////////
 router.get("/reports", pageController.reportsPage);
+// password forget//////////////////////////////////
+router.get("/forgot-password", pageController.forgotPage)
+router.get("/reset-password", pageController.resetPage)
 module.exports = router;

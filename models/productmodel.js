@@ -97,7 +97,6 @@ async function updatedata(id, data, userId) {
         category_id = ?,
         cost_price = ?,
         sale_price = ?,
-        quantity = ?,
         reorder_level = ?
       WHERE id = ?`;
     const [result] = await conn.query(sql, [
@@ -106,7 +105,6 @@ async function updatedata(id, data, userId) {
       data.category_id,
       data.cost_price,
       data.sale_price,
-      data.quantity,
       data.reorder_level,
       id
     ]);

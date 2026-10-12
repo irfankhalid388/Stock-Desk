@@ -25,10 +25,9 @@
   <input type="number" step="0.01" id="sale_price" value="<%= product ? product.sale_price : '' %>">
   <span id="err-sale_price"></span>
 
-  <label for="quantity">Quantity</label>
-  <input type="number" id="quantity" value="<%= product ? product.quantity : '' %>">
-  <span id="err-quantity"></span>
-
+    <label for="quantity">Quantity</label>
+  <input type="number" id="quantity" value="<%= product ? product.quantity : '' %>" <%= product ? "readonly" : "" %>>
+  
   <label for="reorder_level">Reorder Level</label>
   <input type="number" id="reorder_level" value="<%= product ? product.reorder_level : '' %>">
   <span id="err-reorder_level"></span>

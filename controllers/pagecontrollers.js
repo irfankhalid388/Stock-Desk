@@ -147,6 +147,10 @@ function notFound(res, message) {
   });
 }
 
+
+function forgotPage(req, res) { res.render("auth/forgot") }
+function resetPage(req, res)  { res.render("auth/reset") }
+
 module.exports = {
   notFound,
   reportsPage,
@@ -161,4 +165,6 @@ module.exports = {
   dashboardPage,
   userForm,
   usersList,
+  forgotPage,
+  resetPage
 };

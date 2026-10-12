@@ -48,6 +48,7 @@ if (form) {
       console.error(err);
       setFormError("Could not reach the server. Please try again.");
     }
+    
 
     if (submitBtn) submitBtn.disabled = false;
   });
