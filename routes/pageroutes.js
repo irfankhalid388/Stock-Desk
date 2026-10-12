@@ -27,4 +27,6 @@ router.get("/reports", pageController.reportsPage);
 // password forget//////////////////////////////////
 router.get("/forgot-password", pageController.forgotPage)
 router.get("/reset-password", pageController.resetPage)
+// profile/////////////////////////////////////////////////
+router.get("/profile", pageController.profilePage)
 module.exports = router;

@@ -1,0 +1,23 @@
+<h2>My profile</h2>
+
+<div id="info">
+  <p><strong>Name:</strong> <span id="pName">Loading...</span></p>
+  <p><strong>Email:</strong> <span id="pEmail"></span></p>
+  <p><strong>Role:</strong> <span id="pRole"></span></p>
+</div>
+
+<button id="showPwBtn" type="button">Change password</button>
+
+<form id="pwForm" hidden>
+  <input type="password" id="currentPassword" placeholder="Current password" required>
+  <span class="err" id="err-currentPassword"></span>
+
+  <input type="password" id="newPassword" placeholder="New password" required>
+  <span class="err" id="err-newPassword"></span>
+
+  <button type="submit" id="pwSubmit">Update password</button>
+  <button type="button" id="pwCancel">Cancel</button>
+</form>
+
+<p id="msg"></p>
+<script src="/js/profile.js"></script>

@@ -151,7 +151,15 @@ function notFound(res, message) {
 function forgotPage(req, res) { res.render("auth/forgot") }
 function resetPage(req, res)  { res.render("auth/reset") }
 
+
+function profilePage(req, res) {
+  res.render("layouts/main", {
+    title: "My Profile",
+    view: "profiles/profiles",
+  })
+}
 module.exports = {
+  profilePage,
   notFound,
   reportsPage,
   productsList,

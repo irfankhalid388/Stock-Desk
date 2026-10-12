@@ -305,6 +305,28 @@ async function getallusers(req, res, next) {
     next(err);
   }
 }
+// change password//////////////////////////////////////////////////////////
+async function changepassword(req,res,next){
+  try{
+const { currentPassword, newPassword } = req.body 
+const user=await model.findByIdWithPassword(req.user.id)
+if(!user){
+return res.status(404).json({error:"user not found"})
+}
+console.log("current:", typeof currentPassword, "| hash:", typeof user.password_hash)
+const match=await compare(currentPassword,user.password_hash)
+if(!match){
+return  res.status(400).json({error:"password does not match"})
+}
+const newHash=await hash(newPassword)
+await model.updatepassword(user.id,newHash)
+await model.revokeAllForUser(user.id)
+res.json({message:"password updated! please login again"})
+  }
+  catch(err){
+next(err)
+  }
+}
 // ///////////////////////////EXPORTS/////////////////////////////////////
 module.exports={
     register,
@@ -317,5 +339,6 @@ module.exports={
      resetPassword,
      forgotpassword,
     getallusers,
-    updateuser
+    updateuser,
+    changepassword
 }

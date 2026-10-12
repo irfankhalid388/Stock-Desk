@@ -39,9 +39,13 @@ async function doRefresh() {
 }
 // this checks the route is authentication related or not 
 function isAuthRoute(url) {
-  return url.startsWith("/api/auth/");
+  return [
+    "/api/auth/login",
+    "/api/auth/refresh",
+    "/api/auth/logout",
+    "/api/auth/me",
+  ].includes(url);
 }
-
 // shared helpers (sab page scripts yahin se use karengi) //////////////////
 function escapeHtml(str) {
   return String(str ?? "")
