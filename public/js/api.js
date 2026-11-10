@@ -1,3 +1,4 @@
+
 // ///////////global variables
 let accesstoken = null;
 let refreshPromise = null;
@@ -23,7 +24,7 @@ async function doRefresh() {
       if (res.ok) {
         const data = await res.json();
         setAccessToken(data.accesstoken);
-        return true;
+        return data.accesstoken;
       }
 
       setAccessToken(null);
@@ -39,12 +40,14 @@ async function doRefresh() {
 }
 // this checks the route is authentication related or not 
 function isAuthRoute(url) {
-  return [
+  const authRoutes = [
     "/api/auth/login",
     "/api/auth/refresh",
-    "/api/auth/logout",
     "/api/auth/me",
-  ].includes(url);
+  ];
+  // Strip query parameters to prevent mismatching URLs with query strings
+  const pathname = String(url || "").split("?")[0];
+  return authRoutes.includes(pathname);
 }
 // shared helpers (sab page scripts yahin se use karengi) //////////////////
 function escapeHtml(str) {
@@ -111,8 +114,14 @@ async function request(method, url, body) {
   });
 
   if (res.status === 401 && !isAuthRoute(url)) {
-    const refreshed = await doRefresh();
-    if (refreshed) {
+    let newtoken;
+try {
+  newtoken = await doRefresh();
+} catch (err) {
+  console.error("Token refresh failed", err);
+  return res; // don't redirect: a network blip isn't a dead session
+}
+    if (newtoken) {
       headers["Authorization"] = `Bearer ${accesstoken}`;
       res = await fetch(url, {
         method,
@@ -122,6 +131,7 @@ async function request(method, url, body) {
       });
     } else {
       window.location.href = "/login";
+      return new Promise(()=>{});
     }
   }
 
@@ -179,4 +189,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-window.authReady = initAuth();
+  window.authReady = initAuth();

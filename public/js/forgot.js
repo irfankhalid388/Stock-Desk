@@ -12,8 +12,9 @@ form.addEventListener("submit",async (e)=>{
              headers: { "Content-Type": "application/json" },
              body:JSON.stringify({email:document.getElementById("email").value})
         })
-        const data=await res.json()
-         msg.textContent = data.message || data.error || "Something went wrong"
+        const data=await res.json().catch(() => ({}))
+         document.getElementById("err-email").textContent = data.errors?.email || ""
+msg.textContent = data.errors ? "" : (data.message || data.error || "Something went wrong")
          if (res.ok){
             btn.textContent="link sent"
             return 

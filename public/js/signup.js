@@ -1,3 +1,17 @@
+function clearFieldErrors() {
+  document.querySelectorAll("[id^='err-']").forEach((s) => (s.textContent = ""));
+}
+
+function showFieldErrors(errors) {
+  const leftover = [];
+  Object.entries(errors || {}).forEach(([field, msg]) => {
+    const span = document.getElementById(`err-${field}`);
+    if (span) span.textContent = msg;
+    else leftover.push(msg);
+  });
+  return leftover;
+}
+
 document.getElementById("signupform").addEventListener("submit", async (e) => {
   e.preventDefault();
   const submitbtn = e.target.querySelector("button[type='submit']");
@@ -30,10 +44,13 @@ document.getElementById("signupform").addEventListener("submit", async (e) => {
       errorMsg.textContent = "Registration is closed. Ask an admin to create your account.";
     } else if (res.status === 409) {
       errorMsg.textContent = "This email is already registered.";
+    } else if (res.status === 429) {
+      errorMsg.textContent = "Too many attempts. Please wait a minute and try again.";
     } else {
       errorMsg.textContent = "Sign up failed. Please try again.";
     }
   } catch (err) {
+    console.error(err);
     errorMsg.textContent = "Could not reach the server. Please try again.";
   }
   if (submitbtn) submitbtn.disabled = false;
